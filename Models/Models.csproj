@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1A805CD8-1280-4AE2-B944-F56ED4779D85}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MHGR.Models</RootNamespace>
+    <AssemblyName>Models</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Relational\Enums.cs" />
+    <Compile Include="Relational\gene.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\patient.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\PatientRepository.cs" />
+    <Compile Include="Relational\patient_phenotypes.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\patient_result_collections.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\patient_result_members.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\patient_variants.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\patient_variant_information.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\phenotype.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\PhenotypeRepository.cs" />
+    <Compile Include="Relational\Relational.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Relational.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\Relational.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\Relational.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Relational.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\result_sources.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\variant.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Relational\variant_information_types.cs">
+      <DependentUpon>Relational.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <EntityDeploy Include="Relational\Relational.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>Relational.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="Relational\Relational.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Relational.edmx</DependentUpon>
+      <LastGenOutput>Relational.Context.cs</LastGenOutput>
+    </None>
+    <None Include="Relational\Relational.edmx.diagram">
+      <DependentUpon>Relational.edmx</DependentUpon>
+    </None>
+    <None Include="Relational\Relational.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Relational.edmx</DependentUpon>
+      <LastGenOutput>Relational.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
