@@ -5,6 +5,10 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MHGR", "MHGR\MHGR.csproj", "{214EA9DF-947C-472D-88F5-57DAB1024093}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataImporter", "DataImporter\DataImporter.csproj", "{DE1AC149-846B-409F-B6B1-D9B93BEA32C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{1A805CD8-1280-4AE2-B944-F56ED4779D85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{214EA9DF-947C-472D-88F5-57DAB1024093}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{214EA9DF-947C-472D-88F5-57DAB1024093}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{214EA9DF-947C-472D-88F5-57DAB1024093}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE1AC149-846B-409F-B6B1-D9B93BEA32C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE1AC149-846B-409F-B6B1-D9B93BEA32C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE1AC149-846B-409F-B6B1-D9B93BEA32C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE1AC149-846B-409F-B6B1-D9B93BEA32C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A805CD8-1280-4AE2-B944-F56ED4779D85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A805CD8-1280-4AE2-B944-F56ED4779D85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A805CD8-1280-4AE2-B944-F56ED4779D85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A805CD8-1280-4AE2-B944-F56ED4779D85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
