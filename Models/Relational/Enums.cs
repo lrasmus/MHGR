@@ -11,6 +11,12 @@ namespace MHGR.Models.Relational
         public class ResultMemberType
         {
             public const byte Phenotype = 1;
+            public const byte Variant = 2;
+        }
+
+        public class PatientVariantType
+        {
+            public const byte SNP = 1;
         }
     }
 }

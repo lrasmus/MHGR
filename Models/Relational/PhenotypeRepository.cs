@@ -9,6 +9,8 @@ namespace MHGR.Models.Relational
     public class PhenotypeRepository
     {
         private RelationalEntities entities = new RelationalEntities();
+        private SourceRepository sourceRepo = new SourceRepository();
+        private PatientRepository patientRepo = new PatientRepository();
 
         public patient_result_collections AddResult(patient patient, string labName, string name, string value, string externalId, string externalSource, DateTime resultedOn)
         {
@@ -26,26 +28,25 @@ namespace MHGR.Models.Relational
                     external_id = externalId
                 };
                 entities.phenotypes.Add(phenotype);
-            }
-
-            // Next, identify the source lab this is from
-            var source = (from src in entities.result_sources
-                             where src.name == labName
-                             select src).FirstOrDefault();
-            if (source == null)
-            {
-                source = new result_sources()
-                {
-                    name = labName
-                };
-                entities.result_sources.Add(source);
-            }
-
-            if (entities.ChangeTracker.HasChanges())
-            {
                 entities.SaveChanges();
             }
 
+            //// Next, identify the source lab this is from
+            //var source = (from src in entities.result_sources
+            //                 where src.name == labName
+            //                 select src).FirstOrDefault();
+            //if (source == null)
+            //{
+            //    source = new result_sources()
+            //    {
+            //        name = labName
+            //    };
+            //    entities.result_sources.Add(source);
+            //}
+
+            // Next, identify the source lab this is from
+            var source = sourceRepo.AddSource(labName, string.Empty);
+            
             // Now add the patient phenotype
             var patientPhenotype = new patient_phenotypes()
             {
@@ -55,19 +56,12 @@ namespace MHGR.Models.Relational
             entities.patient_phenotypes.Add(patientPhenotype);
 
             // Add the patient result collection for this entry
-            var collection = new patient_result_collections()
-            {
-                patient_id = patient.id,
-                received_on = DateTime.Now,
-                source_id = source.id
-            };
-            entities.patient_result_collections.Add(collection);
-            entities.SaveChanges();
+            var collection = patientRepo.AddCollection(patient, source);
 
             // Finally, link the collection to the phenotype
             var member = new patient_result_members()
             {
-                patient_result_collections = collection,
+                collection_id = collection.id,
                 member_id = patientPhenotype.id,
                 member_type = Enums.ResultMemberType.Phenotype,
             };

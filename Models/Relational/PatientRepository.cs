@@ -11,7 +11,7 @@ namespace MHGR.Models.Relational
     {
         private RelationalEntities entities = new RelationalEntities();
 
-        public patient Upsert(string mrn, string mrnSource, string firstName, string lastName, DateTime dateOfBirth)
+        public patient AddPatient(string mrn, string mrnSource, string firstName, string lastName, DateTime dateOfBirth)
         {
             var result = (from existingPatient in entities.patients
                          where existingPatient.external_source == mrnSource && existingPatient.external_id == mrn
@@ -32,6 +32,20 @@ namespace MHGR.Models.Relational
             }
 
             return result;
+        }
+
+        public patient_result_collections AddCollection(patient patient, result_sources source)
+        {
+            // Add the patient result collection for this entry
+            var collection = new patient_result_collections()
+            {
+                patient_id = patient.id,
+                received_on = DateTime.Now,
+                source_id = source.id
+            };
+            entities.patient_result_collections.Add(collection);
+            entities.SaveChanges();
+            return collection;
         }
     }
 }
