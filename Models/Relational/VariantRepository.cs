@@ -20,6 +20,12 @@ namespace MHGR.Models.Relational
             public string Genotype;
         }
 
+        public class StarVariantResult
+        {
+            public string Gene;
+            public string Result;
+        }
+
         public gene AddGene(string name, string symbol, string externalId, string externalSource, string chromosome)
         {
             var existingGene = (from g in entities.genes
@@ -101,6 +107,64 @@ namespace MHGR.Models.Relational
             entities.SaveChanges();
 
             // Finally, link the collection to the SNPs
+            foreach (var variant in variants)
+            {
+                var member = new patient_result_members()
+                {
+                    collection_id = collection.id,
+                    member_id = variant.reference_id,
+                    member_type = Enums.ResultMemberType.Variant,
+                };
+                entities.patient_result_members.Add(member);
+            }
+            entities.SaveChanges();
+
+            return collection;
+        }
+
+        public patient_result_collections AddStarVariants(patient patient, string labName, DateTime resultedOn, List<StarVariantResult> stars)
+        {
+            var source = sourceRepo.AddSource(labName, string.Empty);
+
+            // Create a collection
+            var collection = patientRepo.AddCollection(patient, source);
+
+            // Create patient variant entries
+            List<patient_variants> variants = new List<patient_variants>();
+            foreach (var star in stars)
+            {
+                var gene = AddGene(star.Gene, star.Gene, null, null, null);
+                var variant = AddVariant(star.Gene, star.Result, "Star Variant", null, null, null, null, null);
+                string[] splitStars = star.Result.Split(new string[]{"*"}, StringSplitOptions.RemoveEmptyEntries);
+                var patientVariant = new patient_variants()
+                {
+                    patient_id = patient.id,
+                    variant_type = Enums.PatientVariantType.StarVariant,
+                    reference_id = variant.id,
+                    resulted_on = resultedOn,
+                    value1 = splitStars[0],
+                    value2 = splitStars[1]
+                };
+                variants.Add(patientVariant);
+            }
+            //foreach (var snp in snps)
+            //{
+            //    var variant = GetVariant(snp.RSID, "dbSNP");
+            //    var patientVariant = new patient_variants()
+            //    {
+            //        patient_id = patient.id,
+            //        variant_type = Enums.PatientVariantType.StarVariant,
+            //        reference_id = variant.id,
+            //        resulted_on = resultedOn,
+            //        value1 = snp.Genotype[0].ToString(),
+            //        value2 = snp.Genotype[1].ToString()
+            //    };
+            //    variants.Add(patientVariant);
+            //}
+            entities.patient_variants.AddRange(variants);
+            entities.SaveChanges();
+
+            // Finally, link the collection to the stars
             foreach (var variant in variants)
             {
                 var member = new patient_result_members()

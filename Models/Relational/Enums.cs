@@ -17,6 +17,7 @@ namespace MHGR.Models.Relational
         public class PatientVariantType
         {
             public const byte SNP = 1;
+            public const byte StarVariant = 2;
         }
     }
 }

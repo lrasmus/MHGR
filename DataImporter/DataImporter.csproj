@@ -56,6 +56,7 @@
     <Compile Include="Relational\BaseLoader.cs" />
     <Compile Include="Relational\PhenotypeLoader.cs" />
     <Compile Include="Relational\SNPLoader.cs" />
+    <Compile Include="Relational\StarVariantLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
