@@ -11,6 +11,7 @@ namespace MHGR.DataImporter.Relational
     public class GVFLoader : BaseLoader
     {
         public const char Delimiter = '\t';
+        public char[] CommentTrimChars = new[] { ' ', '\t', '\r', '\n', '#' };
         private PragmaParser pragmaParser = new PragmaParser();
         private KeyValueParser kvParser = new KeyValueParser();
         private PhenotypeRepository phenotypeRepo = new PhenotypeRepository();
@@ -89,7 +90,7 @@ namespace MHGR.DataImporter.Relational
                         break;
                     }
                     case RowType.Comment: {
-                        comments.Add(row);
+                        comments.Add(row.Trim(CommentTrimChars));
                         break;
                     }
                     case RowType.Data: {
@@ -124,37 +125,26 @@ namespace MHGR.DataImporter.Relational
                         foreach (var tag in pragma.Tags)
                         {
                             collectionInformationList.Add(AddPragmaInformation(string.Format("GVF:{0}:{1}", pragma.Name, tag.Name), tag.Value));
-                            //var infoType = variantRepo.AddVariantInformationType(infoName, null, Enums.VariantInformationTypeSource.GVF);
-                            //collectionInformationList.Add(new patient_variant_information()
-                            //    {
-                            //        item_type = Enums.PatientVariantType.Collection,
-                            //        type_id = infoType.id,
-                            //        value = tag.Value
-                            //    });
                         }
                     }
                     else
                     {
                         collectionInformationList.Add(AddPragmaInformation(string.Format("GVF:{0}", pragma.Name), pragma.Value));
-                        //var infoType = variantRepo.AddVariantInformationType(pragma.Name, null, Enums.VariantInformationTypeSource.GVF);
-                        //collectionInformationList.Add(new patient_variant_information()
-                        //{
-                        //    item_type = Enums.PatientVariantType.Collection,
-                        //    type_id = infoType.id,
-                        //    value = pragma.Value
-                        //});
                     }
                 }
+            }
+
+            foreach (var comment in comments)
+            {
+                collectionInformationList.Add(AddPragmaInformation("GVF:Comment", comment));
             }
 
             // Save the collection to get its ID
             var collection = patientRepo.AddCollection(patient, source);
 
-
-            foreach (var collectionInfo in collectionInformationList)
-            {
-                collectionInfo.item_id = collection.id;
-            }
+            // Save the collection-level pragma data
+            collectionInformationList.ForEach(x => x.item_id = collection.id);
+            variantRepo.AddPatientVariantInformationList(collectionInformationList);
         }
 
         private phenotype CreatePhenotype(Pragma pragma)

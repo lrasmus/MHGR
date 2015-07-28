@@ -165,20 +165,7 @@ namespace MHGR.Models.Relational
                 };
                 variants.Add(patientVariant);
             }
-            //foreach (var snp in snps)
-            //{
-            //    var variant = GetVariant(snp.RSID, "dbSNP");
-            //    var patientVariant = new patient_variants()
-            //    {
-            //        patient_id = patient.id,
-            //        variant_type = Enums.PatientVariantType.StarVariant,
-            //        reference_id = variant.id,
-            //        resulted_on = resultedOn,
-            //        value1 = snp.Genotype[0].ToString(),
-            //        value2 = snp.Genotype[1].ToString()
-            //    };
-            //    variants.Add(patientVariant);
-            //}
+
             entities.patient_variants.AddRange(variants);
             entities.SaveChanges();
 
@@ -196,6 +183,12 @@ namespace MHGR.Models.Relational
             entities.SaveChanges();
 
             return collection;
+        }
+
+        public void AddPatientVariantInformationList(List<patient_variant_information> collectionInformationList)
+        {
+            entities.patient_variant_information.AddRange(collectionInformationList);
+            entities.SaveChanges();
         }
     }
 }
