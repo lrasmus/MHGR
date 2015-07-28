@@ -80,6 +80,24 @@ namespace MHGR.Models.Relational
             return existingVariant;
         }
 
+        public variant_information_types AddVariantInformationType(string name, string description, byte source)
+        {
+            var existingType = entities.variant_information_types.FirstOrDefault(x => x.name == name && x.source == source);
+            if (existingType == null)
+            {
+                existingType = new variant_information_types()
+                {
+                    name = name,
+                    description = description,
+                    source = source
+                };
+                entities.variant_information_types.Add(existingType);
+                entities.SaveChanges();
+            }
+
+            return existingType;
+        }
+
         public patient_result_collections AddSnps(patient patient, string labName, DateTime resultedOn, List<SnpResult> snps)
         {
             var source = sourceRepo.AddSource(labName, string.Empty);

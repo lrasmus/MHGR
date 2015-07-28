@@ -11,7 +11,7 @@ namespace MHGR.Models.Relational
     {
         private RelationalEntities entities = new RelationalEntities();
 
-        public patient AddPatient(string mrn, string mrnSource, string firstName, string lastName, DateTime dateOfBirth)
+        public patient AddPatient(string mrn, string mrnSource, string firstName, string lastName, DateTime? dateOfBirth)
         {
             var result = (from existingPatient in entities.patients
                          where existingPatient.external_source == mrnSource && existingPatient.external_id == mrn

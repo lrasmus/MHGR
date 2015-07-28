@@ -18,6 +18,12 @@ namespace MHGR.Models.Relational
         {
             public const byte SNP = 1;
             public const byte StarVariant = 2;
+            public const byte Collection = 3;
+        }
+
+        public class VariantInformationTypeSource
+        {
+            public const byte GVF = 1;
         }
     }
 }

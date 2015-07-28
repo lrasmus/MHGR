@@ -54,6 +54,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Relational\BaseLoader.cs" />
+    <Compile Include="Relational\GVFLoader.cs" />
+    <Compile Include="Relational\KeyValueParser.cs" />
+    <Compile Include="Relational\PragmaParser.cs" />
     <Compile Include="Relational\PhenotypeLoader.cs" />
     <Compile Include="Relational\SNPLoader.cs" />
     <Compile Include="Relational\StarVariantLoader.cs" />

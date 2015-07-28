@@ -31,19 +31,6 @@ namespace MHGR.Models.Relational
                 entities.SaveChanges();
             }
 
-            //// Next, identify the source lab this is from
-            //var source = (from src in entities.result_sources
-            //                 where src.name == labName
-            //                 select src).FirstOrDefault();
-            //if (source == null)
-            //{
-            //    source = new result_sources()
-            //    {
-            //        name = labName
-            //    };
-            //    entities.result_sources.Add(source);
-            //}
-
             // Next, identify the source lab this is from
             var source = sourceRepo.AddSource(labName, string.Empty);
             
@@ -70,6 +57,27 @@ namespace MHGR.Models.Relational
             entities.SaveChanges();
 
             return collection;
+        }
+
+        public phenotype GetPhenotypeByExternalId(phenotype phenotype)
+        {
+            var existingPhenotype = (from pheno in entities.phenotypes
+                                     where pheno.external_id == phenotype.external_id && pheno.external_source == phenotype.external_source
+                             select pheno).FirstOrDefault();
+            if (phenotype == null)
+            {
+                phenotype = new phenotype()
+                {
+                    name = phenotype.name,
+                    value = phenotype.value,
+                    external_source = phenotype.external_source,
+                    external_id = phenotype.external_id,
+                };
+                entities.phenotypes.Add(phenotype);
+                entities.SaveChanges();
+            }
+
+            return phenotype;
         }
     }
 }
