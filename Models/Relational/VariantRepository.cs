@@ -57,14 +57,18 @@ namespace MHGR.Models.Relational
 
         public variant AddVariant(string geneSymbol, string externalId, string externalSource, string chromosome, int? startPosition, int? endPosition, string referenceGenome, string referenceBases)
         {
-            var existingGene = AddGene(geneSymbol, geneSymbol, null, null, chromosome);
+            gene existingGene = null;
+            if (geneSymbol != null)
+            {
+                existingGene = AddGene(geneSymbol, geneSymbol, null, null, chromosome);
+            }
 
             var existingVariant = GetVariant(externalId, externalSource);
             if (existingVariant == null)
             {
                 existingVariant = new variant()
                 {
-                    gene_id = existingGene.id,
+                    gene_id = ((existingGene == null) ? null : (int?)existingGene.id),
                     external_id = externalId,
                     external_source = externalSource,
                     chromosome = chromosome,
@@ -183,6 +187,12 @@ namespace MHGR.Models.Relational
             entities.SaveChanges();
 
             return collection;
+        }
+
+        public void AddPatientVariants(List<patient_variants> patientVariants)
+        {
+            entities.patient_variants.AddRange(patientVariants);
+            entities.SaveChanges();
         }
 
         public void AddPatientVariantInformationList(List<patient_variant_information> collectionInformationList)

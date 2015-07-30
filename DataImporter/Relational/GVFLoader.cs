@@ -76,6 +76,32 @@ namespace MHGR.DataImporter.Relational
             };
         }
 
+        private patient_variant_information AddFeatureInformation(string attributeName, string attributeValue)
+        {
+            var infoType = variantRepo.AddVariantInformationType(attributeName, null, Enums.VariantInformationTypeSource.GVF);
+            return new patient_variant_information()
+            {
+                item_type = Enums.PatientVariantType.SNP,
+                type_id = infoType.id,
+                value = attributeValue
+            };
+        }
+
+        private void SetVariantValues(patient_variants variant, string value, string genotype)
+        {
+            if (genotype == "homozygous")
+            {
+                variant.value1 = value;
+                variant.value2 = value;
+            }
+            else if (genotype == "heterozygous")
+            {
+                string[] values = value.Split(',');
+                variant.value1 = values[0];
+                variant.value2 = values[1];
+            }
+        }
+
         public override void LoadData(string[] data)
         {
             List<Pragma> pragmas = new List<Pragma>();
@@ -102,8 +128,12 @@ namespace MHGR.DataImporter.Relational
 
             var source = sourceRepo.AddSource("GVF", "GVF file");
             patient patient = null;
-            List<patient_variant_information> collectionInformationList = new List<patient_variant_information>();
+            var collectionInformationList = new List<patient_variant_information>();
+            //var featureInformationList = new List<patient_variant_information>();
             string genomeBuild = null;
+            DateTime? resultDate = null;
+
+            // Process the file-level pragmas
             foreach (var pragma in pragmas)
             {
                 if (pragma.Name == "individual-id")
@@ -117,6 +147,10 @@ namespace MHGR.DataImporter.Relational
                 else if (pragma.Name == "genome-build")
                 {
                     genomeBuild = pragma.Value;
+                }
+                else if (pragma.Name == "file-date")
+                {
+                    resultDate = DateTime.Parse(pragma.Value);
                 }
                 else
                 {
@@ -134,9 +168,42 @@ namespace MHGR.DataImporter.Relational
                 }
             }
 
+            // Convert all comments into individual variant information entries
             foreach (var comment in comments)
             {
                 collectionInformationList.Add(AddPragmaInformation("GVF:Comment", comment));
+            }
+
+            // Go through the individual features and build up both reference variants and
+            // the patient-level variants
+            var patientVariants = new List<patient_variants>();
+            var featureInformationList = new Dictionary<patient_variants, List<patient_variant_information> >();
+            foreach (var feature in features)
+            {
+                var variant = variantRepo.AddVariant(null, 
+                    feature.Attributes.FirstOrDefault(x => x.Name == "ID").Value, "GVF", 
+                    feature.SequenceId, feature.StartPosition, feature.EndPosition, genomeBuild,
+                    feature.Attributes.FirstOrDefault(x => x.Name == "Reference_seq").Value);
+                var patientVariant = new patient_variants()
+                {
+                    patient_id = patient.id,
+                    reference_id = variant.id,
+                    resulted_on = resultDate,
+                    variant_type = Enums.PatientVariantType.SNP
+                };
+                SetVariantValues(patientVariant, feature.Attributes.FirstOrDefault(x => x.Name == "Variant_seq").Value, feature.Attributes.FirstOrDefault(x => x.Name == "Genotype").Value);
+                patientVariants.Add(patientVariant);
+
+                var attributeList = new List<patient_variant_information>();
+                attributeList.Add(AddFeatureInformation("GVF:Score", feature.Score));
+                attributeList.Add(AddFeatureInformation("GVF:Strand", feature.Strand));
+                attributeList.Add(AddFeatureInformation("GVF:Phase", feature.Phase));
+
+                foreach (var attribute in feature.Attributes.Where(x => x.Name != "Variant_seq" && x.Name != "Reference_seq" && x.Name != "ID"))
+                {
+                    attributeList.Add(AddFeatureInformation(string.Format("GVF:{0}", attribute.Name), attribute.Value));
+                }
+                featureInformationList.Add(patientVariant, attributeList);
             }
 
             // Save the collection to get its ID
@@ -145,6 +212,19 @@ namespace MHGR.DataImporter.Relational
             // Save the collection-level pragma data
             collectionInformationList.ForEach(x => x.item_id = collection.id);
             variantRepo.AddPatientVariantInformationList(collectionInformationList);
+            variantRepo.AddPatientVariants(patientVariants);
+
+            // Save the individual attributes associated with each feature.
+            // Must be done after the patient variants are written to DB (above), since we
+            // rely on the ID being set.
+            foreach (var pair in featureInformationList)
+            {
+                foreach (var attribute in pair.Value)
+                {
+                    attribute.item_id = pair.Key.id;
+                }
+                variantRepo.AddPatientVariantInformationList(pair.Value);
+            }
         }
 
         private phenotype CreatePhenotype(Pragma pragma)

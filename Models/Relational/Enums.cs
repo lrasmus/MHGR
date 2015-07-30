@@ -24,6 +24,7 @@ namespace MHGR.Models.Relational
         public class VariantInformationTypeSource
         {
             public const byte GVF = 1;
+            public const byte VCF = 2;
         }
     }
 }
