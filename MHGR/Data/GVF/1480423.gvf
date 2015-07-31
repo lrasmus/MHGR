@@ -1,0 +1,54 @@
+##gff-version 3
+##gvf-version 1.04
+##file-version 1.03
+##file-date 2015-09-15
+
+# individual-description
+# First_name=Keira;Last_name=Swensen;DOB=2015-09-15;
+
+##individual-id Dbxref=EHR:1480423;Display_name=Keira Swensen;
+##source-method Source=SOLiD;Type=SNV;Dbxref=http://tinyurl.com/AB-Genome-Data;Comment=SNPs were detected across the three genomes via a heuristic approach which considers the number of reads per allele as well as a score which weights the SNP calls based on the error profile of the reads;
+##source-method Source=SOLiD;Type=SNV;Dbxref=http://www.yandell-lab.org;Comment=Variants were converted their from original format to GVF by the Yandell Lab;
+##technology-platform Source=SOLiD;Type=SNV;Dbxref=http://solid.appliedbiosystems.com;Platform_class=short read sequencing;Platform_name=AB SOLiD;Read_type=pair,fragment;Read_length=25;Read_pair_span=600,3500;Average_coverage=26;
+##feature-ontology http://sourceforge.net/projects/song/files/SO_Feature_Annotation/sofa_2_4_1/sofa_2_4_1.obo/download
+##genome-build GRCh38
+
+##sequence-region chr1  1 247249719
+##sequence-region chr10 1 135374737
+##sequence-region chr11 1 134452384
+##sequence-region chr14 1 106368585
+##sequence-region chr15 1 100338915
+##sequence-region chr16 1 88827254
+
+chr10	SOLiD	SNV	94761900	94761900	.	+	.	ID=rs12248560;Reference_seq=C;Variant_seq=T;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94762706	94762706	.	+	.	ID=rs28399504;Reference_seq=A;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94775416	94775416	.	+	.	ID=rs41291556;Reference_seq=T;Variant_seq=T;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	96535210	96535210	.	+	.	ID=rs72558184;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94780653	94780653	.	+	.	ID=rs4986893;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94781859	94781859	.	+	.	ID=rs4244285;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94781999	94781999	.	+	.	ID=rs72558186;Reference_seq=T;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94852738	94852738	.	+	.	ID=rs56337013;Reference_seq=C;Variant_seq=T;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94775489	94775489	.	+	.	ID=rs17884712;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94781858	94781858	.	+	.	ID=rs6413438;Reference_seq=C;Variant_seq=C,T;Variant_reads=10,10;Genotype=heterozygous
+chr10	SOLiD	SNV	94981296	94981296	.	+	.	ID=rs1057910;Reference_seq=A;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr10	SOLiD	SNV	94942290	94942290	.	+	.	ID=rs1799853;Reference_seq=C;Variant_seq=C,T;Variant_reads=10,10;Genotype=heterozygous
+chr16	SOLiD	SNV	31096368	31096368	.	+	.	ID=rs9923231;Reference_seq=C;Variant_seq=T;Variant_reads=10;Genotype=homozygous
+chr16	SOLiD	SNV	31093557	31093557	.	+	.	ID=rs9934438;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr16	SOLiD	SNV	31093188	31093188	.	+	.	ID=rs8050894;Reference_seq=C;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr1	SOLiD	SNV	169549811	169549811	.	+	.	ID=rs6025;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr11	SOLiD	SNV	46739505	46739505	.	+	.	ID=rs1799963;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr14	SOLiD	SNV	23427723	23427723	.	+	.	ID=rs121913626;Reference_seq=G;Variant_seq=C;Variant_reads=10;Genotype=homozygous
+chr14	SOLiD	SNV	23431468	23431468	.	+	.	ID=rs3218713;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr14	SOLiD	SNV	23429279	23429279	.	+	.	ID=rs3218714;Reference_seq=C;Variant_seq=C;Variant_reads=10;Genotype=homozygous
+chr1	SOLiD	SNV	201365638	201365638	.	+	.	ID=rs121964855;Reference_seq=T;Variant_seq=T;Variant_reads=10;Genotype=homozygous
+chr1	SOLiD	SNV	201365297	201365297	.	+	.	ID=rs121964856;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr1	SOLiD	SNV	201359245	201359245	.	+	.	ID=rs121964857;Reference_seq=C;Variant_seq=C;Variant_reads=10;Genotype=homozygous
+chr15	SOLiD	SNV	63060915	63060915	.	+	.	ID=rs28934269;Reference_seq=A;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr15	SOLiD	SNV	63060899	63060899	.	+	.	ID=rs28934270;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr15	SOLiD	SNV	63042875	63042875	.	+	.	ID=rs727504290;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr15	SOLiD	SNV	63057028	63057028	.	+	.	ID=rs104894504;Reference_seq=T;Variant_seq=C;Variant_reads=10;Genotype=homozygous
+chr11	SOLiD	SNV	47342698	47342698	.	+	.	ID=rs375882485;Reference_seq=G;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr11	SOLiD	SNV	47346379	47346379	.	+	.	ID=rs397516083;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr11	SOLiD	SNV	47339792	47339792	.	+	.	ID=rs397515937;Reference_seq=A;Variant_seq=A;Variant_reads=10;Genotype=homozygous
+chr11	SOLiD	SNV	47348424	47348424	.	+	.	ID=rs397516074;Reference_seq=G;Variant_seq=G;Variant_reads=10;Genotype=homozygous
+chr11	SOLiD	SNV	47337729	47337729	.	+	.	ID=rs397515963;Reference_seq=-;Variant_seq=G;Variant_reads=10;Genotype=homozygous

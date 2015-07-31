@@ -31,8 +31,7 @@ namespace GenerateTestGVFs
                     Lab = fields[6],
                     SNPs = new List<VariantRepository.SnpResult>()
                 };
-
-                List<VariantRepository.SnpResult> snps = new List<VariantRepository.SnpResult>();
+                
                 for (int fieldIndex = 7; fieldIndex < 135; fieldIndex += 4)
                 {
                     var snp = new VariantRepository.SnpResult()
@@ -42,10 +41,64 @@ namespace GenerateTestGVFs
                         Position = int.Parse(fields[fieldIndex + 2]),
                         Genotype = fields[fieldIndex + 3]
                     };
-                    snps.Add(snp);
+                    dataRow.SNPs.Add(snp);
                 }
 
                 GenerateGVF(dataRow);
+            }
+        }
+
+        static string GetReference(string rsid)
+        {
+            switch (rsid)
+            {
+                case "rs12248560": return "C";
+                case "rs28399504": return "A";
+                case "rs41291556": return "T";
+                case "rs72558184": return "G";
+                case "rs4986893": return "G";
+                case "rs4244285": return "G";
+                case "rs72558186": return "T";
+                case "rs56337013": return "C";
+                case "rs17884712": return "G";
+                case "rs6413438": return "C";
+                case "rs1057910": return "A";
+                case "rs1799853": return "C";
+                case "rs9923231": return "C";
+                case "rs9934438": return "G";
+                case "rs8050894": return "C";
+                case "rs6025": return "G";
+                case "rs1799963": return "G";
+                case "rs121913626": return "G";
+                case "rs3218713": return "G";
+                case "rs3218714": return "C";
+                case "rs121964855": return "T";
+                case "rs121964856": return "G";
+                case "rs121964857": return "C";
+                case "rs28934269": return "A";
+                case "rs28934270": return "G";
+                case "rs727504290": return "G";
+                case "rs104894504": return "T";
+                case "rs375882485": return "G";
+                case "rs397516083": return "G";
+                case "rs397515937": return "A";
+                case "rs397516074": return "G";
+                case "rs397515963": return "-";
+            }
+
+            return "UNKNOWN";
+        }
+
+        static string GetVariant(VariantRepository.SnpResult snp)
+        {
+            char[] variant = snp.Genotype.ToCharArray();
+            if (variant[0] != variant[1])
+            {
+                return string.Format("Variant_seq={0},{1};Variant_reads=10,10;Genotype=heterozygous", variant[0], variant[1]);
+            }
+            else
+            {
+                return string.Format("Variant_seq={0};Variant_reads=10;Genotype=homozygous", variant[0]);
             }
         }
 
@@ -58,38 +111,29 @@ namespace GenerateTestGVFs
             gvfLines.Add(string.Format("##file-date {0}", dataRow.ResultedOn.ToString("yyyy-MM-dd")));
             gvfLines.Add("");
             gvfLines.Add("# individual-description");
-            gvfLines.Add("# Female Yoruban from Ibadan, Nigeria; all four grandparents are Yoruba");
+            gvfLines.Add(string.Format("# First_name={0};Last_name={1};DOB={2};", dataRow.FirstName, dataRow.LastName, dataRow.ResultedOn.ToString("yyyy-MM-dd")));
             gvfLines.Add("");
-            gvfLines.Add("##individual-id Dbxref=Coriell:NA19240,PMID:20796305;Population=Yoruba;Comment=International HAPMAP project - Yoruba in Ibadan%2C Nigeria (Plate I);Display_name=NA19240;");
+            gvfLines.Add(string.Format("##individual-id Dbxref={0}:{1};Display_name={2} {3};", dataRow.MRNSource, dataRow.MRN, dataRow.FirstName, dataRow.LastName));
             gvfLines.Add("##source-method Source=SOLiD;Type=SNV;Dbxref=http://tinyurl.com/AB-Genome-Data;Comment=SNPs were detected across the three genomes via a heuristic approach which considers the number of reads per allele as well as a score which weights the SNP calls based on the error profile of the reads;");
             gvfLines.Add("##source-method Source=SOLiD;Type=SNV;Dbxref=http://www.yandell-lab.org;Comment=Variants were converted their from original format to GVF by the Yandell Lab;");
             gvfLines.Add("##technology-platform Source=SOLiD;Type=SNV;Dbxref=http://solid.appliedbiosystems.com;Platform_class=short read sequencing;Platform_name=AB SOLiD;Read_type=pair,fragment;Read_length=25;Read_pair_span=600,3500;Average_coverage=26;");
-            gvfLines.Add("##phenotype-description Ontology=http://obofoundry.org/wiki/index.php/PATO:Main_Page;Term=female");
+            //gvfLines.Add("##phenotype-description Ontology=http://obofoundry.org/wiki/index.php/PATO:Main_Page;Term=female");
             gvfLines.Add("##feature-ontology http://sourceforge.net/projects/song/files/SO_Feature_Annotation/sofa_2_4_1/sofa_2_4_1.obo/download");
-            gvfLines.Add("##genome-build NCBI B36");
+            gvfLines.Add("##genome-build GRCh38");
             gvfLines.Add("");
             gvfLines.Add("##sequence-region chr1  1 247249719");
-            gvfLines.Add("##sequence-region chr2  1 242951149");
-            gvfLines.Add("##sequence-region chr3  1 199501827");
-            gvfLines.Add("##sequence-region chr4  1 191273063");
-            gvfLines.Add("##sequence-region chr5  1 180857866");
-            gvfLines.Add("##sequence-region chr6  1 170899992");
-            gvfLines.Add("##sequence-region chr7  1 158821424");
-            gvfLines.Add("##sequence-region chr8  1 146274826");
-            gvfLines.Add("##sequence-region chr9  1 140273252");
             gvfLines.Add("##sequence-region chr10 1 135374737");
             gvfLines.Add("##sequence-region chr11 1 134452384");
-            gvfLines.Add("##sequence-region chr12 1 132349534");
-            gvfLines.Add("##sequence-region chr13 1 114142980");
             gvfLines.Add("##sequence-region chr14 1 106368585");
             gvfLines.Add("##sequence-region chr15 1 100338915");
             gvfLines.Add("##sequence-region chr16 1 88827254");
-            gvfLines.Add("##sequence-region chr17 1 78774742");
-            gvfLines.Add("##sequence-region chr18 1 76117153");
-            gvfLines.Add("##sequence-region chr19 1 63811651");
-            gvfLines.Add("##sequence-region chr20 1 62435964");
-            gvfLines.Add("##sequence-region chr21 1 46944323");
-            gvfLines.Add("##sequence-region chr22 1 49691432");
+            gvfLines.Add("");
+
+            foreach (var snp in dataRow.SNPs)
+            {
+                gvfLines.Add(string.Format("chr{0}\tSOLiD\tSNV\t{1}\t{2}\t.\t+\t.\tID={3};Reference_seq={4};{5}", 
+                    snp.Chromosome, snp.Position, snp.Position, snp.RSID, GetReference(snp.RSID), GetVariant(snp)));
+            }
 
             File.WriteAllLines(Path.Combine(ConfigurationManager.AppSettings["GVFDirectory"], dataRow.MRN + ".gvf"), gvfLines);
         }
