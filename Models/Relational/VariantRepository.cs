@@ -200,5 +200,21 @@ namespace MHGR.Models.Relational
             entities.patient_variant_information.AddRange(collectionInformationList);
             entities.SaveChanges();
         }
+
+        public void AddPatientVariantsToCollection(patient_result_collections collection, List<patient_variants> patientVariants)
+        {
+            foreach (var variant in patientVariants)
+            {
+                var member = new patient_result_members()
+                {
+                    collection_id = collection.id,
+                    member_id = variant.reference_id,
+                    member_type = Enums.ResultMemberType.Variant,
+                };
+                entities.patient_result_members.Add(member);
+            }
+
+            entities.SaveChanges();
+        }
     }
 }

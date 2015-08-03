@@ -59,18 +59,22 @@ namespace DataImporter
             //}
 
             var gvfLoader = new GVFLoader();
-            var gvfData = File.ReadAllLines(ConfigurationManager.AppSettings["GVFData"]);
-            gvfLoader.LoadData(gvfData);
-            //if (!gvfLoader.ConsistencyChecks(1000, 8, 53, 35000, 7000, 40000))
-            //{
-            //    Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
-            //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
-            //    return;
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Passed - Consistency checks passed for star variant data load");
-            //}
+            string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
+            foreach (var file in files)
+            {
+                var gvfData = File.ReadAllLines(file);
+                gvfLoader.LoadData(gvfData);
+            }
+            if (!gvfLoader.ConsistencyChecks(1000, 8, 53, 67000, 8000, 72000, 187000, 23))
+            {
+                Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
+                Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
+                return;
+            }
+            else
+            {
+                Console.WriteLine("Passed - Consistency checks passed for GVF data load");
+            }
         }
     }
 }

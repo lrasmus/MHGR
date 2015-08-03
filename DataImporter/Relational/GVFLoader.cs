@@ -129,7 +129,6 @@ namespace MHGR.DataImporter.Relational
             var source = sourceRepo.AddSource("GVF", "GVF file");
             patient patient = null;
             var collectionInformationList = new List<patient_variant_information>();
-            //var featureInformationList = new List<patient_variant_information>();
             string genomeBuild = null;
             DateTime? resultDate = null;
 
@@ -138,7 +137,11 @@ namespace MHGR.DataImporter.Relational
             {
                 if (pragma.Name == "individual-id")
                 {
-                    patient = patientRepo.AddPatient(pragma.Tags.FirstOrDefault(x => x.Name == "Dbxref").Value, "MRN", null, null, null);
+                    var mrnParts = pragma.Tags.FirstOrDefault(x => x.Name == "Dbxref").Value.Split(':');
+                    patient = patientRepo.AddPatient(mrnParts[1], mrnParts[0],
+                        pragma.Tags.FirstOrDefault(x => x.Name == "First_name").Value,
+                        pragma.Tags.FirstOrDefault(x => x.Name == "Last_name").Value,
+                        DateTime.Parse(pragma.Tags.FirstOrDefault(x => x.Name == "DOB").Value));
                 }
                 else if (pragma.Name == "phenotype-description")
                 {
@@ -181,7 +184,7 @@ namespace MHGR.DataImporter.Relational
             foreach (var feature in features)
             {
                 var variant = variantRepo.AddVariant(null, 
-                    feature.Attributes.FirstOrDefault(x => x.Name == "ID").Value, "GVF", 
+                    feature.Attributes.FirstOrDefault(x => x.Name == "ID").Value, "dbSNPn", 
                     feature.SequenceId, feature.StartPosition, feature.EndPosition, genomeBuild,
                     feature.Attributes.FirstOrDefault(x => x.Name == "Reference_seq").Value);
                 var patientVariant = new patient_variants()
@@ -225,6 +228,8 @@ namespace MHGR.DataImporter.Relational
                 }
                 variantRepo.AddPatientVariantInformationList(pair.Value);
             }
+
+            variantRepo.AddPatientVariantsToCollection(collection, patientVariants);
         }
 
         private phenotype CreatePhenotype(Pragma pragma)
@@ -249,6 +254,22 @@ namespace MHGR.DataImporter.Relational
             }
 
             return phenotype;
+        }
+
+        public bool ConsistencyChecks(int patients, int genes, int variants, int patientVariants, int patientResultCollections, int patientResultMembers, int patientVariantInformation, int variantInformationTypes)
+        {
+            var entities = new RelationalEntities();
+            bool isValid = true;
+            isValid = isValid && CheckEntityCounts(patients, entities.patients.Count(), "patients");
+            isValid = isValid && CheckEntityCounts(genes, entities.genes.Count(), "genes");
+            isValid = isValid && CheckEntityCounts(variants, entities.variants.Count(), "variants");
+            isValid = isValid && CheckEntityCounts(patientVariants, entities.patient_variants.Count(), "patient variants");
+            isValid = isValid && CheckEntityCounts(patientResultCollections, entities.patient_result_collections.Count(), "patient result collections");
+            isValid = isValid && CheckEntityCounts(patientResultMembers, entities.patient_result_members.Count(), "patient result members");
+            isValid = isValid && CheckEntityCounts(patientVariantInformation, entities.patient_variant_information.Count(), "patient variant information");
+            isValid = isValid && CheckEntityCounts(variantInformationTypes, entities.variant_information_types.Count(), "variant information type");
+
+            return isValid;
         }
     }
 }

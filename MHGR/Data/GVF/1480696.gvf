@@ -3,10 +3,7 @@
 ##file-version 1.03
 ##file-date 2015-08-24
 
-# individual-description
-# First_name=Imelda;Last_name=Swensen;DOB=2015-08-24;
-
-##individual-id Dbxref=EHR:1480696;Display_name=Imelda Swensen;
+##individual-id Dbxref=EHR:1480696;First_name=Imelda;Last_name=Swensen;DOB=2015-08-24;
 ##source-method Source=SOLiD;Type=SNV;Dbxref=http://tinyurl.com/AB-Genome-Data;Comment=SNPs were detected across the three genomes via a heuristic approach which considers the number of reads per allele as well as a score which weights the SNP calls based on the error profile of the reads;
 ##source-method Source=SOLiD;Type=SNV;Dbxref=http://www.yandell-lab.org;Comment=Variants were converted their from original format to GVF by the Yandell Lab;
 ##technology-platform Source=SOLiD;Type=SNV;Dbxref=http://solid.appliedbiosystems.com;Platform_class=short read sequencing;Platform_name=AB SOLiD;Read_type=pair,fragment;Read_length=25;Read_pair_span=600,3500;Average_coverage=26;

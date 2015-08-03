@@ -110,10 +110,8 @@ namespace GenerateTestGVFs
             gvfLines.Add("##file-version 1.03");
             gvfLines.Add(string.Format("##file-date {0}", dataRow.ResultedOn.ToString("yyyy-MM-dd")));
             gvfLines.Add("");
-            gvfLines.Add("# individual-description");
-            gvfLines.Add(string.Format("# First_name={0};Last_name={1};DOB={2};", dataRow.FirstName, dataRow.LastName, dataRow.ResultedOn.ToString("yyyy-MM-dd")));
-            gvfLines.Add("");
-            gvfLines.Add(string.Format("##individual-id Dbxref={0}:{1};Display_name={2} {3};", dataRow.MRNSource, dataRow.MRN, dataRow.FirstName, dataRow.LastName));
+            gvfLines.Add(string.Format("##individual-id Dbxref={0}:{1};First_name={2};Last_name={3};DOB={4};",
+                dataRow.MRNSource, dataRow.MRN, dataRow.FirstName, dataRow.LastName, dataRow.ResultedOn.ToString("yyyy-MM-dd")));
             gvfLines.Add("##source-method Source=SOLiD;Type=SNV;Dbxref=http://tinyurl.com/AB-Genome-Data;Comment=SNPs were detected across the three genomes via a heuristic approach which considers the number of reads per allele as well as a score which weights the SNP calls based on the error profile of the reads;");
             gvfLines.Add("##source-method Source=SOLiD;Type=SNV;Dbxref=http://www.yandell-lab.org;Comment=Variants were converted their from original format to GVF by the Yandell Lab;");
             gvfLines.Add("##technology-platform Source=SOLiD;Type=SNV;Dbxref=http://solid.appliedbiosystems.com;Platform_class=short read sequencing;Platform_name=AB SOLiD;Read_type=pair,fragment;Read_length=25;Read_pair_span=600,3500;Average_coverage=26;");
