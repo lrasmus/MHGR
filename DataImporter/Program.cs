@@ -16,7 +16,7 @@ namespace DataImporter
             //var phenotypeData = File.ReadAllLines(ConfigurationManager.AppSettings["PhenotypeData"]);
             //var phenotypeLoader = new PhenotypeLoader();
             //phenotypeLoader.LoadData(phenotypeData);
-            //if (!phenotypeLoader.ConsistencyChecks(18, 996, 5000, 5000, 5000))
+            //if (!phenotypeLoader.ConsistencyChecks(996, 18, 0, 0, 5000, 0, 5000, 50000, 0, 0))
             //{
             //    Console.WriteLine("FAILED - Results of the phenotype load do not match internal consistency checks.");
             //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -33,7 +33,7 @@ namespace DataImporter
 
             //var snpData = File.ReadAllLines(ConfigurationManager.AppSettings["SNPData"]);
             //snpLoader.LoadData(snpData);
-            //if (!snpLoader.ConsistencyChecks(1000, 8, 32, 32000, 6000, 37000))
+            //if (!snpLoader.ConsistencyChecks(1000, 18, 8, 32, 5000, 32000, 6000, 37000, 0, 0))
             //{
             //    Console.WriteLine("FAILED - Results of the SNP load do not match internal consistency checks.");
             //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -47,7 +47,7 @@ namespace DataImporter
             //var starVariantLoader = new StarVariantLoader();
             //var starVariantData = File.ReadAllLines(ConfigurationManager.AppSettings["StarVariantData"]);
             //starVariantLoader.LoadData(starVariantData);
-            //if (!starVariantLoader.ConsistencyChecks(1000, 8, 53, 35000, 7000, 40000))
+            //if (!starVariantLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 35000, 7000, 40000, 0, 0))
             //{
             //    Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
             //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -65,7 +65,7 @@ namespace DataImporter
                 var gvfData = File.ReadAllLines(file);
                 gvfLoader.LoadData(gvfData);
             }
-            if (!gvfLoader.ConsistencyChecks(1000, 8, 53, 67000, 8000, 72000, 187000, 23))
+            if (!gvfLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
             {
                 Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");

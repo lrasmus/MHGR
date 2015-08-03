@@ -255,21 +255,5 @@ namespace MHGR.DataImporter.Relational
 
             return phenotype;
         }
-
-        public bool ConsistencyChecks(int patients, int genes, int variants, int patientVariants, int patientResultCollections, int patientResultMembers, int patientVariantInformation, int variantInformationTypes)
-        {
-            var entities = new RelationalEntities();
-            bool isValid = true;
-            isValid = isValid && CheckEntityCounts(patients, entities.patients.Count(), "patients");
-            isValid = isValid && CheckEntityCounts(genes, entities.genes.Count(), "genes");
-            isValid = isValid && CheckEntityCounts(variants, entities.variants.Count(), "variants");
-            isValid = isValid && CheckEntityCounts(patientVariants, entities.patient_variants.Count(), "patient variants");
-            isValid = isValid && CheckEntityCounts(patientResultCollections, entities.patient_result_collections.Count(), "patient result collections");
-            isValid = isValid && CheckEntityCounts(patientResultMembers, entities.patient_result_members.Count(), "patient result members");
-            isValid = isValid && CheckEntityCounts(patientVariantInformation, entities.patient_variant_information.Count(), "patient variant information");
-            isValid = isValid && CheckEntityCounts(variantInformationTypes, entities.variant_information_types.Count(), "variant information type");
-
-            return isValid;
-        }
     }
 }
