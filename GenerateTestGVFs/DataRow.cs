@@ -1,4 +1,4 @@
-﻿using MHGR.Models.Relational;
+﻿using MHGR.Models.Hybrid;
 using System;
 using System.Collections.Generic;
 using System.Linq;

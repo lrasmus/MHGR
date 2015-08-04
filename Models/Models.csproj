@@ -54,57 +54,57 @@
     <Compile Include="GVF\Pragma.cs" />
     <Compile Include="GVF\Tag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Relational\Enums.cs" />
-    <Compile Include="Relational\gene.cs">
+    <Compile Include="Hybrid\Enums.cs" />
+    <Compile Include="Hybrid\gene.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\patient.cs">
+    <Compile Include="Hybrid\patient.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\PatientRepository.cs" />
-    <Compile Include="Relational\patient_phenotypes.cs">
+    <Compile Include="Hybrid\PatientRepository.cs" />
+    <Compile Include="Hybrid\patient_phenotypes.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\patient_result_collections.cs">
+    <Compile Include="Hybrid\patient_result_collections.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\patient_result_members.cs">
+    <Compile Include="Hybrid\patient_result_members.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\patient_variants.cs">
+    <Compile Include="Hybrid\patient_variants.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\patient_variant_information.cs">
+    <Compile Include="Hybrid\patient_variant_information.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\phenotype.cs">
+    <Compile Include="Hybrid\phenotype.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\PhenotypeRepository.cs" />
-    <Compile Include="Relational\Relational.Context.cs">
+    <Compile Include="Hybrid\PhenotypeRepository.cs" />
+    <Compile Include="Hybrid\Relational.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Relational.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\Relational.cs">
+    <Compile Include="Hybrid\Relational.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\Relational.Designer.cs">
+    <Compile Include="Hybrid\Hybrid.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Relational.edmx</DependentUpon>
+      <DependentUpon>Hybrid.edmx</DependentUpon>
     </Compile>
-    <Compile Include="Relational\result_sources.cs">
+    <Compile Include="Hybrid\result_sources.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\SourceRepository.cs" />
-    <Compile Include="Relational\variant.cs">
+    <Compile Include="Hybrid\SourceRepository.cs" />
+    <Compile Include="Hybrid\variant.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
-    <Compile Include="Relational\VariantRepository.cs" />
-    <Compile Include="Relational\variant_information_types.cs">
+    <Compile Include="Hybrid\VariantRepository.cs" />
+    <Compile Include="Hybrid\variant_information_types.cs">
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -112,21 +112,21 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <EntityDeploy Include="Relational\Relational.edmx">
+    <EntityDeploy Include="Hybrid\Hybrid.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>Relational.Designer.cs</LastGenOutput>
+      <LastGenOutput>Hybrid.Designer.cs</LastGenOutput>
     </EntityDeploy>
-    <None Include="Relational\Relational.Context.tt">
+    <None Include="Hybrid\Relational.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Relational.edmx</DependentUpon>
+      <DependentUpon>Hybrid.edmx</DependentUpon>
       <LastGenOutput>Relational.Context.cs</LastGenOutput>
     </None>
-    <None Include="Relational\Relational.edmx.diagram">
-      <DependentUpon>Relational.edmx</DependentUpon>
+    <None Include="Hybrid\Hybrid.edmx.diagram">
+      <DependentUpon>Hybrid.edmx</DependentUpon>
     </None>
-    <None Include="Relational\Relational.tt">
+    <None Include="Hybrid\Relational.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Relational.edmx</DependentUpon>
+      <DependentUpon>Hybrid.edmx</DependentUpon>
       <LastGenOutput>Relational.cs</LastGenOutput>
     </None>
   </ItemGroup>
