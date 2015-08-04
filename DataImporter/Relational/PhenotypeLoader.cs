@@ -23,18 +23,5 @@ namespace MHGR.DataImporter.Relational
                 phenotypeRepo.AddResult(patient, fields[5], fields[6], fields[7], fields[8], fields[9], DateTime.Parse(fields[10]));
             }
         }
-        
-        //public bool ConsistencyChecks(int phenotypes, int patients, int patientPhenotypes, int patientResultCollections, int patientResultMembers)
-        //{
-        //    var entities = new RelationalEntities();
-        //    bool isValid = true;
-        //    isValid = isValid && CheckEntityCounts(phenotypes, entities.phenotypes.Count(), "phenotypes");
-        //    isValid = isValid && CheckEntityCounts(patients, entities.patients.Count(), "patients");
-        //    isValid = isValid && CheckEntityCounts(patientPhenotypes, entities.patient_phenotypes.Count(), "patient phenotypes");
-        //    isValid = isValid && CheckEntityCounts(patientResultCollections, entities.patient_result_collections.Count(), "patient result collections");
-        //    isValid = isValid && CheckEntityCounts(patientResultMembers, entities.patient_result_members.Count(), "patient result members");
-
-        //    return isValid;
-        //}
     }
 }

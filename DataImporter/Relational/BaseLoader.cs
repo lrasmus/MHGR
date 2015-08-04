@@ -11,6 +11,13 @@ namespace MHGR.DataImporter.Relational
     {
         public abstract void LoadData(string[] data);
 
+        /// <summary>
+        /// Utility function to verify an expected count matches an actual one
+        /// </summary>
+        /// <param name="expectedCount"></param>
+        /// <param name="actualCount"></param>
+        /// <param name="entityName"></param>
+        /// <returns></returns>
         protected static bool CheckEntityCounts(int expectedCount, int actualCount, string entityName)
         {
             if (actualCount != expectedCount)
@@ -22,6 +29,20 @@ namespace MHGR.DataImporter.Relational
             return true;
         }
 
+        /// <summary>
+        /// Check the counts of the database tables to ensure they meet what's expected
+        /// </summary>
+        /// <param name="patients"></param>
+        /// <param name="phenotypes"></param>
+        /// <param name="genes"></param>
+        /// <param name="variants"></param>
+        /// <param name="patientPhenotypes"></param>
+        /// <param name="patientVariants"></param>
+        /// <param name="patientResultCollections"></param>
+        /// <param name="patientResultMembers"></param>
+        /// <param name="patientVariantInformation"></param>
+        /// <param name="variantInformationTypes"></param>
+        /// <returns></returns>
         public bool ConsistencyChecks(int patients, int phenotypes, int genes, int variants, int patientPhenotypes, int patientVariants, int patientResultCollections, int patientResultMembers, int patientVariantInformation, int variantInformationTypes)
         {
             var entities = new RelationalEntities();
