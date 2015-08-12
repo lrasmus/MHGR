@@ -1,4 +1,5 @@
-﻿using MHGR.DataImporter.Hybrid;
+﻿using Bio.VCF;
+using MHGR.DataImporter.Hybrid;
 using System;
 using System.Configuration;
 using System.IO;
@@ -54,23 +55,26 @@ namespace DataImporter
             //    Console.WriteLine("Passed - Consistency checks passed for star variant data load");
             //}
 
-            var gvfLoader = new GVFLoader();
-            string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
-            foreach (var file in files)
-            {
-                var gvfData = File.ReadAllLines(file);
-                gvfLoader.LoadData(gvfData);
-            }
-            if (!gvfLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
-            {
-                Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
-                Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
-                return;
-            }
-            else
-            {
-                Console.WriteLine("Passed - Consistency checks passed for GVF data load");
-            }
+            //var gvfLoader = new GVFLoader();
+            //string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
+            //foreach (var file in files)
+            //{
+            //    var gvfData = File.ReadAllLines(file);
+            //    gvfLoader.LoadData(gvfData);
+            //}
+            //if (!gvfLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
+            //{
+            //    Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
+            //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
+            //    return;
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Passed - Consistency checks passed for GVF data load");
+            //}
+
+            var vcfLoader = new VCFLoader();
+            vcfLoader.LoadData(ConfigurationManager.AppSettings["VCFData"]);
         }
     }
 }
