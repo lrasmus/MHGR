@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GenerateTestGVFs
+namespace MHGR.Helpers.Generator
 {
     public class DataRow
     {

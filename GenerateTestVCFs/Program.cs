@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GenerateTestGVFs
+namespace GenerateTestVCFs
 {
     class Program
     {
@@ -33,7 +33,7 @@ namespace GenerateTestGVFs
                     Lab = fields[6],
                     SNPs = new List<VariantRepository.SnpResult>()
                 };
-                
+
                 for (int fieldIndex = 7; fieldIndex < 135; fieldIndex += 4)
                 {
                     var snp = new VariantRepository.SnpResult()
@@ -90,7 +90,7 @@ namespace GenerateTestGVFs
 
             foreach (var snp in dataRow.SNPs)
             {
-                gvfLines.Add(string.Format("chr{0}\tSOLiD\tSNV\t{1}\t{2}\t.\t+\t.\tID={3};Reference_seq={4};{5}", 
+                gvfLines.Add(string.Format("chr{0}\tSOLiD\tSNV\t{1}\t{2}\t.\t+\t.\tID={3};Reference_seq={4};{5}",
                     snp.Chromosome, snp.Position, snp.Position, snp.RSID, Lookup.GetSNPReferenceValue(snp.RSID), GetVariant(snp)));
             }
 
