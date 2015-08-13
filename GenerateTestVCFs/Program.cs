@@ -18,7 +18,7 @@ namespace GenerateTestVCFs
         static void Main(string[] args)
         {
             // Read in our list of patients and their corresponding randomization variables
-            var data = File.ReadAllLines(ConfigurationManager.AppSettings["GVFList"]);
+            var data = File.ReadAllLines(ConfigurationManager.AppSettings["VCFList"]);
             foreach (var dataLine in data.Skip(1))
             {
                 var fields = dataLine.Split(Delimiter);
@@ -50,51 +50,81 @@ namespace GenerateTestVCFs
             }
         }
 
-        static string GetVariant(VariantRepository.SnpResult snp)
+        static private string FormatAlternateAlleles(List<string> variants)
         {
-            char[] variant = snp.Genotype.ToCharArray();
-            if (variant[0] != variant[1])
+            string result = string.Join(",", variants);
+            if (string.IsNullOrWhiteSpace(result))
             {
-                return string.Format("Variant_seq={0},{1};Variant_reads=10,10;Genotype=heterozygous", variant[0], variant[1]);
+                result = ".";
             }
-            else
+
+            return result;
+        }
+
+        static private string FormatSampleGenotype(VariantRepository.SnpResult snp, List<string> alleles, string reference)
+        {
+            string[] variants = snp.Genotype.ToArray().Select(x => x.ToString()).ToArray();
+            List<string> map = new List<string>();
+            foreach (var variant in variants)
             {
-                return string.Format("Variant_seq={0};Variant_reads=10;Genotype=homozygous", variant[0]);
+                if (variant == reference)
+                {
+                    map.Add("0");
+                }
+                else
+                {
+                    map.Add((alleles.IndexOf(variant) + 1).ToString());
+                }
             }
+            return string.Join("|", map);
+        }
+
+        static List<string> GetVariants(VariantRepository.SnpResult snp, string reference)
+        {
+            string[] variants = snp.Genotype.ToArray().Select(x => x.ToString()).ToArray();
+            List<string> results = new List<string>();
+            foreach (var variant in variants)
+            {
+                if (variant != reference && !results.Contains(variant))
+                {
+                    results.Add(variant);
+                }
+            }
+            return results;
         }
 
         static void GenerateGVF(DataRow dataRow)
         {
-            List<string> gvfLines = new List<string>();
-            gvfLines.Add("##gff-version 3");
-            gvfLines.Add("##gvf-version 1.04");
-            gvfLines.Add("##file-version 1.03");
-            gvfLines.Add(string.Format("##file-date {0}", dataRow.ResultedOn.ToString("yyyy-MM-dd")));
-            gvfLines.Add("");
-            gvfLines.Add(string.Format("##individual-id Dbxref={0}:{1};First_name={2};Last_name={3};DOB={4};",
-                dataRow.MRNSource, dataRow.MRN, dataRow.FirstName, dataRow.LastName, dataRow.ResultedOn.ToString("yyyy-MM-dd")));
-            gvfLines.Add("##source-method Source=SOLiD;Type=SNV;Dbxref=http://tinyurl.com/AB-Genome-Data;Comment=SNPs were detected across the three genomes via a heuristic approach which considers the number of reads per allele as well as a score which weights the SNP calls based on the error profile of the reads;");
-            gvfLines.Add("##source-method Source=SOLiD;Type=SNV;Dbxref=http://www.yandell-lab.org;Comment=Variants were converted their from original format to GVF by the Yandell Lab;");
-            gvfLines.Add("##technology-platform Source=SOLiD;Type=SNV;Dbxref=http://solid.appliedbiosystems.com;Platform_class=short read sequencing;Platform_name=AB SOLiD;Read_type=pair,fragment;Read_length=25;Read_pair_span=600,3500;Average_coverage=26;");
-            //gvfLines.Add("##phenotype-description Ontology=http://obofoundry.org/wiki/index.php/PATO:Main_Page;Term=female");
-            gvfLines.Add("##feature-ontology http://sourceforge.net/projects/song/files/SO_Feature_Annotation/sofa_2_4_1/sofa_2_4_1.obo/download");
-            gvfLines.Add("##genome-build GRCh38");
-            gvfLines.Add("");
-            gvfLines.Add("##sequence-region chr1  1 247249719");
-            gvfLines.Add("##sequence-region chr10 1 135374737");
-            gvfLines.Add("##sequence-region chr11 1 134452384");
-            gvfLines.Add("##sequence-region chr14 1 106368585");
-            gvfLines.Add("##sequence-region chr15 1 100338915");
-            gvfLines.Add("##sequence-region chr16 1 88827254");
-            gvfLines.Add("");
+            List<string> vcfLines = new List<string>();
 
+            vcfLines.Add("##fileformat=VCFv4.0");
+            vcfLines.Add(string.Format("##fileDate={0}", dataRow.ResultedOn.ToString("yyyyMMdd")));
+            vcfLines.Add("##reference=GRCh38");
+            vcfLines.Add("##phasing=partial");
+            vcfLines.Add(string.Format("##individual-id Dbxref={0}:{1};First_name={2};Last_name={3};DOB={4};",
+                dataRow.MRNSource, dataRow.MRN, dataRow.FirstName, dataRow.LastName, dataRow.ResultedOn.ToString("yyyy-MM-dd")));
+            vcfLines.Add("##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">");
+            vcfLines.Add("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">");
+            vcfLines.Add("##INFO=<ID=AF,Number=.,Type=Float,Description=\"Allele Frequency\">");
+            vcfLines.Add("##INFO=<ID=AA,Number=1,Type=String,Description=\"Ancestral Allele\">");
+            vcfLines.Add("##INFO=<ID=DB,Number=0,Type=Flag,Description=\"dbSNP membership, build 129\">");
+            vcfLines.Add("##INFO=<ID=H2,Number=0,Type=Flag,Description=\"HapMap2 membership\">");
+            vcfLines.Add("##FILTER=<ID=q10,Description=\"Quality below 10\">");
+            vcfLines.Add("##FILTER=<ID=s50,Description=\"Less than 50% of samples have data\">");
+            vcfLines.Add("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype Quality\">");
+            vcfLines.Add("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">");
+            vcfLines.Add("##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Read Depth\">");
+            vcfLines.Add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSample1");
             foreach (var snp in dataRow.SNPs)
             {
-                gvfLines.Add(string.Format("chr{0}\tSOLiD\tSNV\t{1}\t{2}\t.\t+\t.\tID={3};Reference_seq={4};{5}",
-                    snp.Chromosome, snp.Position, snp.Position, snp.RSID, Lookup.GetSNPReferenceValue(snp.RSID), GetVariant(snp)));
+                string reference = Lookup.GetSNPReferenceValue(snp.RSID);
+                List<string> alleles = GetVariants(snp, reference);
+                vcfLines.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t50\tPASS\tNS=1;DP=10;AA={3};DB\tGT:GQ:DP\t{5}:50:10",
+                    snp.Chromosome, snp.Position, snp.RSID, reference, FormatAlternateAlleles(alleles),
+                    FormatSampleGenotype(snp, alleles, reference)));
             }
 
-            File.WriteAllLines(Path.Combine(ConfigurationManager.AppSettings["GVFDirectory"], dataRow.MRN + ".gvf"), gvfLines);
+            File.WriteAllLines(Path.Combine(ConfigurationManager.AppSettings["VCFDirectory"], dataRow.MRN + ".vcf"), vcfLines);
         }
     }
 }
