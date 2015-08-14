@@ -72,9 +72,23 @@ namespace DataImporter
             //{
             //    Console.WriteLine("Passed - Consistency checks passed for GVF data load");
             //}
-
+            
             var vcfLoader = new VCFLoader();
-            vcfLoader.LoadData(ConfigurationManager.AppSettings["VCFData"]);
+            string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["VCFDataPath"], ConfigurationManager.AppSettings["VCFDataFilter"]);
+            foreach (var file in files)
+            {
+                vcfLoader.LoadData(file);
+            }
+            //if (!vcfLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
+            //{
+            //    Console.WriteLine("FAILED - Results of the VCF load do not match internal consistency checks.");
+            //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
+            //    return;
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Passed - Consistency checks passed for VCF data load");
+            //}
         }
     }
 }

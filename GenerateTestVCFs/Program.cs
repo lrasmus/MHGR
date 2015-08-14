@@ -50,13 +50,23 @@ namespace GenerateTestVCFs
             }
         }
 
-        static private string FormatAlternateAlleles(List<string> variants)
+        static private string FormatAlternateAlleles(string rsID, List<string> variants)
         {
-            string result = string.Join(",", variants);
+            // Do a replacement of dashes (which we reserve in our input file for insertion
+            // placeholders).
+            string result = string.Join(",", variants).Replace("-", "");
             if (string.IsNullOrWhiteSpace(result))
             {
                 result = ".";
             }
+
+            // For our special insertion scenario, the presence of "G" means an insertion, and to
+            // follow VCF standard we prefix that insertion with the base before it ("G" in this
+            // case).
+            //if (rsID == "rs397515963")
+            //{
+            //    result = result.Replace("G", "GG");
+            //}
 
             return result;
         }
@@ -67,13 +77,27 @@ namespace GenerateTestVCFs
             List<string> map = new List<string>();
             foreach (var variant in variants)
             {
-                if (variant == reference)
+                if (snp.RSID == "rs397515963")
                 {
-                    map.Add("0");
+                    if (variant == "-")
+                    {
+                        map.Add("0");
+                    }
+                    else
+                    {
+                        map.Add("1");
+                    }
                 }
                 else
                 {
-                    map.Add((alleles.IndexOf(variant) + 1).ToString());
+                    if (variant == reference)
+                    {
+                        map.Add("0");
+                    }
+                    else
+                    {
+                        map.Add((alleles.IndexOf(variant) + 1).ToString());
+                    }
                 }
             }
             return string.Join("|", map);
@@ -85,7 +109,15 @@ namespace GenerateTestVCFs
             List<string> results = new List<string>();
             foreach (var variant in variants)
             {
-                if (variant != reference && !results.Contains(variant))
+                // Special handling for the insertion SNP
+                if (snp.RSID == "rs397515963")
+                {
+                    if (variant != "-" && !results.Contains("GG"))
+                    {
+                        results.Add("GG");
+                    }
+                }
+                else if (variant != reference && !results.Contains(variant))
                 {
                     results.Add(variant);
                 }
@@ -118,9 +150,17 @@ namespace GenerateTestVCFs
             foreach (var snp in dataRow.SNPs)
             {
                 string reference = Lookup.GetSNPReferenceValue(snp.RSID);
+
+                // For insertions, we need to back up one position and provide the reference at that
+                // location.
+                if (snp.RSID == "rs397515963")
+                {
+                    reference = "G";
+                    snp.Position -= 1;
+                }
                 List<string> alleles = GetVariants(snp, reference);
                 vcfLines.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t50\tPASS\tNS=1;DP=10;AA={3};DB\tGT:GQ:DP\t{5}:50:10",
-                    snp.Chromosome, snp.Position, snp.RSID, reference, FormatAlternateAlleles(alleles),
+                    snp.Chromosome, snp.Position, snp.RSID, reference, FormatAlternateAlleles(snp.RSID, alleles),
                     FormatSampleGenotype(snp, alleles, reference)));
             }
 
