@@ -2,7 +2,7 @@
 ##fileDate=20150815
 ##reference=GRCh38
 ##phasing=partial
-##individual-id Dbxref=EHR:1480853;First_name=Mathilda;Last_name=Munroe;DOB=2015-08-15;
+##individual-id=<Dbxref=EHR:1480853,First_name=Mathilda,Last_name=Munroe,DOB=2015-08-15>
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of Samples With Data">
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
 ##INFO=<ID=AF,Number=.,Type=Float,Description="Allele Frequency">

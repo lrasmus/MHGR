@@ -48,10 +48,11 @@ namespace MHGR.Models.Hybrid
             return existingGene;
         }
 
-        public variant GetVariant(string externalId, string externalSource)
+        public variant GetVariant(string externalId, string externalSource, int? startPosition, int? endPosition)
         {
             return (from v in entities.variants
                     where v.external_source == externalSource && v.external_id == externalId
+                    && v.start_position == startPosition && v.end_position == endPosition
                     select v).FirstOrDefault();
         }
 
@@ -63,7 +64,7 @@ namespace MHGR.Models.Hybrid
                 existingGene = AddGene(geneSymbol, geneSymbol, null, null, chromosome);
             }
 
-            var existingVariant = GetVariant(externalId, externalSource);
+            var existingVariant = GetVariant(externalId, externalSource, startPosition, endPosition);
             if (existingVariant == null)
             {
                 existingVariant = new variant()
@@ -113,7 +114,7 @@ namespace MHGR.Models.Hybrid
             List<patient_variants> variants = new List<patient_variants>();
             foreach (var snp in snps)
             {
-                var variant = GetVariant(snp.RSID, "dbSNP");
+                var variant = GetVariant(snp.RSID, "dbSNP", snp.Position, snp.Position);
                 var patientVariant = new patient_variants()
                 {
                     patient_id = patient.id,

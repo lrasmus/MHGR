@@ -133,7 +133,7 @@ namespace GenerateTestVCFs
             vcfLines.Add(string.Format("##fileDate={0}", dataRow.ResultedOn.ToString("yyyyMMdd")));
             vcfLines.Add("##reference=GRCh38");
             vcfLines.Add("##phasing=partial");
-            vcfLines.Add(string.Format("##individual-id Dbxref={0}:{1};First_name={2};Last_name={3};DOB={4};",
+            vcfLines.Add(string.Format("##individual-id=<Dbxref={0}:{1},First_name={2},Last_name={3},DOB={4}>",
                 dataRow.MRNSource, dataRow.MRN, dataRow.FirstName, dataRow.LastName, dataRow.ResultedOn.ToString("yyyy-MM-dd")));
             vcfLines.Add("##INFO=<ID=NS,Number=1,Type=Integer,Description=\"Number of Samples With Data\">");
             vcfLines.Add("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Total Depth\">");
