@@ -91,6 +91,21 @@ namespace MHGR.DataImporter.Hybrid
                         individualData.FirstOrDefault(x => x[0] == "Last_name")[1],
                         DateTime.Parse(individualData.FirstOrDefault(x => x[0] == "DOB")[1]));
                 }
+                else if (headerItem.GetType() == typeof(VCFInfoHeaderLine))
+                {
+                    var info = headerItem as VCFInfoHeaderLine;
+                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), info.ToString()));
+                }
+                else if (headerItem.GetType() == typeof(VCFFilterHeaderLine))
+                {
+                    var filter = headerItem as VCFFilterHeaderLine;
+                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), filter.ToString()));
+                }
+                else if (headerItem.GetType() == typeof(VCFFormatHeaderLine))
+                {
+                    var format = headerItem as VCFFormatHeaderLine;
+                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), format.ToString()));
+                }
                 else
                 {
                     collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), headerItem.Value));
