@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bio.VCF\GenotypeExt.cs" />
     <Compile Include="GVF\Feature.cs" />
     <Compile Include="GVF\Pragma.cs" />
     <Compile Include="GVF\Tag.cs" />
@@ -108,7 +109,12 @@
       <DependentUpon>Relational.tt</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Bio.VCF\Bio.VCF.csproj">
+      <Project>{f7213add-1c0c-434f-9a32-7f6c31671a89}</Project>
+      <Name>Bio.VCF</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />

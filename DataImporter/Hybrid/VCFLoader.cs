@@ -1,4 +1,5 @@
 ﻿using Bio.VCF;
+using MHGR.Models.Bio.VCF;
 using MHGR.Models.Hybrid;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace MHGR.DataImporter.Hybrid
             throw new NotImplementedException("This method is not implemented, please pass a file path to LoadData");
         }
 
-        private patient_variant_information AddFeatureInformation(string attributeName, string attributeValue)
+        private patient_variant_information AddVariantInformation(string attributeName, string attributeValue)
         {
             var infoType = variantRepo.AddVariantInformationType(attributeName, null, Enums.VariantInformationTypeSource.VCF);
             return new patient_variant_information()
@@ -46,21 +47,9 @@ namespace MHGR.DataImporter.Hybrid
                     variant.value2 = variant.value1;
                 }
             }
-            //if (context.AlternateAlleles.Count >= 1)
-            //{
-            //    variant.value1 = context.AlternateAlleles[0].DisplayString;
-            //    if (context.AlternateAlleles.Count >= 2)
-            //    {
-            //        variant.value2 = context.AlternateAlleles[1].DisplayString;
-            //    }
-            //    else
-            //    {
-            //        variant.value2 = variant.value1;
-            //    }
-            //}
         }
 
-        private patient_variant_information AddPragmaInformation(string pragmaName, string pragmaValue)
+        private patient_variant_information AddHeaderInformation(string pragmaName, string pragmaValue)
         {
             var infoType = variantRepo.AddVariantInformationType(pragmaName, null, Enums.VariantInformationTypeSource.VCF);
             return new patient_variant_information()
@@ -69,6 +58,11 @@ namespace MHGR.DataImporter.Hybrid
                 type_id = infoType.id,
                 value = pragmaValue
             };
+        }
+
+        private string CleanHeaderValue(string type, string value)
+        {
+            return value.Replace(string.Format("{0}=<", type), "").Replace(">", "");
         }
 
         public void LoadData(string filePath)
@@ -94,21 +88,21 @@ namespace MHGR.DataImporter.Hybrid
                 else if (headerItem.GetType() == typeof(VCFInfoHeaderLine))
                 {
                     var info = headerItem as VCFInfoHeaderLine;
-                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), info.ToString()));
+                    collectionInformationList.Add(AddHeaderInformation(string.Format("VCF:{0}", headerItem.Key), CleanHeaderValue("INFO", info.ToString())));
                 }
                 else if (headerItem.GetType() == typeof(VCFFilterHeaderLine))
                 {
                     var filter = headerItem as VCFFilterHeaderLine;
-                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), filter.ToString()));
+                    collectionInformationList.Add(AddHeaderInformation(string.Format("VCF:{0}", headerItem.Key), CleanHeaderValue("FILTER", filter.ToString())));
                 }
                 else if (headerItem.GetType() == typeof(VCFFormatHeaderLine))
                 {
                     var format = headerItem as VCFFormatHeaderLine;
-                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), format.ToString()));
+                    collectionInformationList.Add(AddHeaderInformation(string.Format("VCF:{0}", headerItem.Key), CleanHeaderValue("FORMAT", format.ToString())));
                 }
                 else
                 {
-                    collectionInformationList.Add(AddPragmaInformation(string.Format("VCF:{0}", headerItem.Key), headerItem.Value));
+                    collectionInformationList.Add(AddHeaderInformation(string.Format("VCF:{0}", headerItem.Key), headerItem.Value));
                 }
             }
 
@@ -136,21 +130,24 @@ namespace MHGR.DataImporter.Hybrid
                 var attributeList = new List<patient_variant_information>();
                 foreach (var attribute in current.Attributes)
                 {
-                    attributeList.Add(AddFeatureInformation(string.Format("VCF:{0}", attribute.Key), attribute.Value.ToString()));
+                    attributeList.Add(AddVariantInformation(string.Format("VCF:{0}", attribute.Key), attribute.Value.ToString()));
                 }
 
                 if (current.FiltersMaybeNull != null)
                 {
                     foreach (var filter in current.FiltersMaybeNull)
                     {
-                        attributeList.Add(AddFeatureInformation("VCF:Filter", filter));
+                        attributeList.Add(AddVariantInformation("VCF:Filter", filter));
                     }
                 }
 
                 foreach (var genotype in current.Genotypes)
                 {
-                    attributeList.Add(AddFeatureInformation("VCF:Genotype", genotype.ToString()));
+                    attributeList.Add(AddVariantInformation("VCF:Genotype", genotype.ToMHGRString()));
                 }
+
+                attributeList.Add(AddVariantInformation("VCF:Quality", current.PhredScaledQual.ToString()));
+                attributeList.Add(AddVariantInformation("VCF:Filter", string.Join(",", current.Filters.ToArray())));
                 featureInformationList.Add(patientVariant, attributeList);
             }
 

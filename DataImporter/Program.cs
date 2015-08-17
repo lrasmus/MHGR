@@ -79,7 +79,7 @@ namespace DataImporter
             {
                 vcfLoader.LoadData(file);
             }
-            if (!vcfLoader.ConsistencyChecks(1000, 18, 8, 54, 5000, 99000, 9000, 104000, 362000, 35))
+            if (!vcfLoader.ConsistencyChecks(1000, 18, 8, 54, 5000, 99000, 9000, 104000, 426000, 36))
             {
                 Console.WriteLine("FAILED - Results of the VCF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
