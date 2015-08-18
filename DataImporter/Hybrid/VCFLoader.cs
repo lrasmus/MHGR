@@ -173,6 +173,10 @@ namespace MHGR.DataImporter.Hybrid
             }
 
             variantRepo.AddPatientVariantsToCollection(collection, patientVariants);
+
+            featureInformationList.Clear();
+            collectionInformationList.Clear();
+            patientVariants.Clear();
         }
     }
 }
