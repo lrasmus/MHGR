@@ -23,10 +23,11 @@ namespace MHGR.DataImporter.Hybrid
 
         public override void LoadData(string[] data)
         {
-            var patientRepo = new PatientRepository();
-            var variantRepo = new VariantRepository();
             foreach (var dataLine in data.Skip(1))
             {
+                var patientRepo = new PatientRepository();
+                var variantRepo = new VariantRepository();
+
                 var fields = dataLine.Split(Delimiter);
                 var patient = patientRepo.AddPatient(fields[0], fields[1], fields[2], fields[3], DateTime.Parse(fields[4]));
                 var resultedOn = DateTime.Parse(fields[5]);

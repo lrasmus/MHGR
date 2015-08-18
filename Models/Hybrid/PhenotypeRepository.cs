@@ -41,6 +41,7 @@ namespace MHGR.Models.Hybrid
                 resulted_on = resultedOn
             };
             entities.patient_phenotypes.Add(patientPhenotype);
+            entities.SaveChanges();
 
             // Add the patient result collection for this entry
             var collection = patientRepo.AddCollection(patient, source);

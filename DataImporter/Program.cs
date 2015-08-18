@@ -55,14 +55,16 @@ namespace DataImporter
                 Console.WriteLine("Passed - Consistency checks passed for star variant data load");
             }
 
-            var gvfLoader = new GVFLoader();
             string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
             foreach (var file in files)
             {
                 var gvfData = File.ReadAllLines(file);
+                var gvfLoader = new GVFLoader();
                 gvfLoader.LoadData(gvfData);
             }
-            if (!gvfLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
+
+            var gvfChecker = new GVFLoader();
+            if (!gvfChecker.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
             {
                 Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -73,13 +75,15 @@ namespace DataImporter
                 Console.WriteLine("Passed - Consistency checks passed for GVF data load");
             }
 
-            var vcfLoader = new VCFLoader();
             files = Directory.GetFiles(ConfigurationManager.AppSettings["VCFDataPath"], ConfigurationManager.AppSettings["VCFDataFilter"]);
             foreach (var file in files)
             {
+                var vcfLoader = new VCFLoader();
                 vcfLoader.LoadData(file);
             }
-            if (!vcfLoader.ConsistencyChecks(1000, 18, 8, 54, 5000, 99000, 9000, 104000, 426000, 36))
+
+            var vcfChecker = new VCFLoader();
+            if (!vcfChecker.ConsistencyChecks(1000, 18, 8, 54, 5000, 99000, 9000, 104000, 426000, 36))
             {
                 Console.WriteLine("FAILED - Results of the VCF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
