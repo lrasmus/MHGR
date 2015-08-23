@@ -1,6 +1,6 @@
 ﻿using MHGR.Helpers;
 using MHGR.Helpers.Generator;
-using MHGR.Models.Hybrid;
+using MHGR.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -31,12 +31,12 @@ namespace GenerateTestVCFs
                     DOB = DateTime.Parse(fields[4]),
                     ResultedOn = DateTime.Parse(fields[5]),
                     Lab = fields[6],
-                    SNPs = new List<VariantRepository.SnpResult>()
+                    SNPs = new List<SnpResult>()
                 };
 
                 for (int fieldIndex = 7; fieldIndex < 135; fieldIndex += 4)
                 {
-                    var snp = new VariantRepository.SnpResult()
+                    var snp = new SnpResult()
                     {
                         RSID = fields[fieldIndex],
                         Chromosome = fields[fieldIndex + 1],
@@ -71,7 +71,7 @@ namespace GenerateTestVCFs
             return result;
         }
 
-        static private string FormatSampleGenotype(VariantRepository.SnpResult snp, List<string> alleles, string reference)
+        static private string FormatSampleGenotype(SnpResult snp, List<string> alleles, string reference)
         {
             string[] variants = snp.Genotype.ToArray().Select(x => x.ToString()).ToArray();
             List<string> map = new List<string>();
@@ -103,7 +103,7 @@ namespace GenerateTestVCFs
             return string.Join("|", map);
         }
 
-        static List<string> GetVariants(VariantRepository.SnpResult snp, string reference)
+        static List<string> GetVariants(SnpResult snp, string reference)
         {
             string[] variants = snp.Genotype.ToArray().Select(x => x.ToString()).ToArray();
             List<string> results = new List<string>();

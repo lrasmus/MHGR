@@ -1,4 +1,4 @@
-﻿using MHGR.Models.Hybrid;
+﻿using MHGR.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +16,6 @@ namespace MHGR.Helpers.Generator
         public DateTime DOB { get; set; }
         public DateTime ResultedOn { get; set; }
         public string Lab { get; set; }
-        public List<VariantRepository.SnpResult> SNPs { get; set; }
+        public List<SnpResult> SNPs { get; set; }
     }
 }

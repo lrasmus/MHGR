@@ -10,9 +10,8 @@ namespace DataImporter
     {
         static void Main(string[] args)
         {
-            var phenotypeData = File.ReadAllLines(ConfigurationManager.AppSettings["PhenotypeData"]);
             var phenotypeLoader = new PhenotypeLoader();
-            phenotypeLoader.LoadData(phenotypeData);
+            phenotypeLoader.LoadData(ConfigurationManager.AppSettings["PhenotypeData"]);
             if (!phenotypeLoader.ConsistencyChecks(996, 18, 0, 0, 5000, 0, 5000, 5000, 0, 0))
             {
                 Console.WriteLine("FAILED - Results of the phenotype load do not match internal consistency checks.");
@@ -25,11 +24,9 @@ namespace DataImporter
             }
 
             var snpLoader = new SNPLoader();
-            var snpReferenceData = File.ReadAllLines(ConfigurationManager.AppSettings["SNPReferenceData"]);
-            snpLoader.LoadReference(snpReferenceData);
-
-            var snpData = File.ReadAllLines(ConfigurationManager.AppSettings["SNPData"]);
-            snpLoader.LoadData(snpData);
+            snpLoader.LoadReference(ConfigurationManager.AppSettings["SNPReferenceData"]);
+            
+            snpLoader.LoadData(ConfigurationManager.AppSettings["SNPData"]);
             if (!snpLoader.ConsistencyChecks(1000, 18, 8, 32, 5000, 32000, 6000, 37000, 0, 0))
             {
                 Console.WriteLine("FAILED - Results of the SNP load do not match internal consistency checks.");
@@ -42,8 +39,7 @@ namespace DataImporter
             }
 
             var starVariantLoader = new StarVariantLoader();
-            var starVariantData = File.ReadAllLines(ConfigurationManager.AppSettings["StarVariantData"]);
-            starVariantLoader.LoadData(starVariantData);
+            starVariantLoader.LoadData(ConfigurationManager.AppSettings["StarVariantData"]);
             if (!starVariantLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 35000, 7000, 40000, 0, 0))
             {
                 Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
@@ -58,9 +54,8 @@ namespace DataImporter
             string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
             foreach (var file in files)
             {
-                var gvfData = File.ReadAllLines(file);
                 var gvfLoader = new GVFLoader();
-                gvfLoader.LoadData(gvfData);
+                gvfLoader.LoadData(file);
             }
 
             var gvfChecker = new GVFLoader();

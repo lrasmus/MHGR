@@ -1,7 +1,9 @@
-﻿using MHGR.Models.Hybrid;
+﻿using MHGR.HybridModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,7 +11,29 @@ namespace MHGR.DataImporter.Hybrid
 {
     public abstract class BaseLoader
     {
-        public abstract void LoadData(string[] data);
+        protected FileRepository fileRepo = new FileRepository();
+        public abstract void LoadData(string filePath);
+
+        protected result_files AddResultFile(string filePath, result_sources source)
+        {
+            string hash = null;
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(filePath))
+                {
+                    hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLower();
+                }
+            }
+
+            var file = new result_files()
+            {
+                md5 = hash,
+                name = filePath,
+                received_on = DateTime.Now,
+                result_source_id = source.id
+            };
+            return fileRepo.AddResultFile(file);
+        }
 
         /// <summary>
         /// Utility function to verify an expected count matches an actual one

@@ -1,6 +1,6 @@
 ﻿using MHGR.Helpers;
 using MHGR.Helpers.Generator;
-using MHGR.Models.Hybrid;
+using MHGR.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -31,12 +31,12 @@ namespace GenerateTestGVFs
                     DOB = DateTime.Parse(fields[4]),
                     ResultedOn = DateTime.Parse(fields[5]),
                     Lab = fields[6],
-                    SNPs = new List<VariantRepository.SnpResult>()
+                    SNPs = new List<SnpResult>()
                 };
                 
                 for (int fieldIndex = 7; fieldIndex < 135; fieldIndex += 4)
                 {
-                    var snp = new VariantRepository.SnpResult()
+                    var snp = new SnpResult()
                     {
                         RSID = fields[fieldIndex],
                         Chromosome = fields[fieldIndex + 1],
@@ -50,7 +50,7 @@ namespace GenerateTestGVFs
             }
         }
 
-        static string GetVariant(VariantRepository.SnpResult snp)
+        static string GetVariant(SnpResult snp)
         {
             char[] variant = snp.Genotype.ToCharArray();
             if (variant[0] != variant[1])

@@ -1,7 +1,8 @@
 ﻿using MHGR.Models.GVF;
-using MHGR.Models.Hybrid;
+using MHGR.HybridModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -102,8 +103,9 @@ namespace MHGR.DataImporter.Hybrid
             }
         }
 
-        public override void LoadData(string[] data)
+        public override void LoadData(string filePath)
         {
+            string[] data = File.ReadAllLines(filePath);
             List<Pragma> pragmas = new List<Pragma>();
             List<string> comments = new List<string>();
             List<Feature> features = new List<Feature>();
@@ -127,6 +129,7 @@ namespace MHGR.DataImporter.Hybrid
             }
 
             var source = sourceRepo.AddSource("GVF", "GVF file");
+            var file = AddResultFile(filePath, source);
             patient patient = null;
             var collectionInformationList = new List<patient_variant_information>();
             string genomeBuild = null;
@@ -210,7 +213,7 @@ namespace MHGR.DataImporter.Hybrid
             }
 
             // Save the collection to get its ID
-            var collection = patientRepo.AddCollection(patient, source);
+            var collection = patientRepo.AddCollection(patient, file);
 
             // Save the collection-level pragma data
             collectionInformationList.ForEach(x => x.item_id = collection.id);

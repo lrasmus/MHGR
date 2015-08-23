@@ -55,59 +55,7 @@
     <Compile Include="GVF\Pragma.cs" />
     <Compile Include="GVF\Tag.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Hybrid\Enums.cs" />
-    <Compile Include="Hybrid\gene.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\patient.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\PatientRepository.cs" />
-    <Compile Include="Hybrid\patient_phenotypes.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\patient_result_collections.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\patient_result_members.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\patient_variants.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\patient_variant_information.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\phenotype.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\PhenotypeRepository.cs" />
-    <Compile Include="Hybrid\Relational.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Relational.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\Relational.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\Hybrid.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Hybrid.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\result_sources.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\SourceRepository.cs" />
-    <Compile Include="Hybrid\variant.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Hybrid\VariantRepository.cs" />
-    <Compile Include="Hybrid\variant_information_types.cs">
-      <DependentUpon>Relational.tt</DependentUpon>
-    </Compile>
+    <Compile Include="SnpResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Bio.VCF\Bio.VCF.csproj">
@@ -116,25 +64,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
-    <EntityDeploy Include="Hybrid\Hybrid.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>Hybrid.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Include="Hybrid\Relational.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Hybrid.edmx</DependentUpon>
-      <LastGenOutput>Relational.Context.cs</LastGenOutput>
-    </None>
-    <None Include="Hybrid\Hybrid.edmx.diagram">
-      <DependentUpon>Hybrid.edmx</DependentUpon>
-    </None>
-    <None Include="Hybrid\Relational.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>Hybrid.edmx</DependentUpon>
-      <LastGenOutput>Relational.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

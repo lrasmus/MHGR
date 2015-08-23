@@ -1,6 +1,8 @@
-﻿using MHGR.Models.Hybrid;
+﻿using MHGR.HybridModels;
+using MHGR.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,8 +13,9 @@ namespace MHGR.DataImporter.Hybrid
     {
         public const char Delimiter = '\t';
 
-        public void LoadReference(string[] data)
+        public void LoadReference(string filePath)
         {
+            string[] data = File.ReadAllLines(filePath);
             var variantRepo = new VariantRepository();
             foreach (var dataLine in data.Skip(1))
             {
@@ -21,21 +24,23 @@ namespace MHGR.DataImporter.Hybrid
             }
         }
 
-        public override void LoadData(string[] data)
+        public override void LoadData(string filePath)
         {
+            string[] data = File.ReadAllLines(filePath);
             foreach (var dataLine in data.Skip(1))
             {
                 var patientRepo = new PatientRepository();
                 var variantRepo = new VariantRepository();
+                var sourceRepo = new SourceRepository();
 
                 var fields = dataLine.Split(Delimiter);
                 var patient = patientRepo.AddPatient(fields[0], fields[1], fields[2], fields[3], DateTime.Parse(fields[4]));
                 var resultedOn = DateTime.Parse(fields[5]);
                 var lab = fields[6];
-                List<VariantRepository.SnpResult> snps = new List<VariantRepository.SnpResult>();
+                var snps = new List<SnpResult>();
                 for (int fieldIndex = 7; fieldIndex < 135; fieldIndex += 4)
                 {
-                    var snp = new VariantRepository.SnpResult()
+                    var snp = new SnpResult()
                     {
                         RSID = fields[fieldIndex],
                         Chromosome = fields[fieldIndex + 1],
@@ -45,7 +50,9 @@ namespace MHGR.DataImporter.Hybrid
                     snps.Add(snp);
                 }
 
-                variantRepo.AddSnps(patient, lab, resultedOn, snps);
+                var source = sourceRepo.AddSource(lab, string.Empty);
+                var file = AddResultFile(filePath, source);
+                variantRepo.AddSnps(patient, file, resultedOn, snps);
             }
         }
     }

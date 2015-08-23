@@ -1,0 +1,390 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="EAVModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="attributes">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="description" Type="nvarchar" MaxLength="1000" />
+          <Property Name="value_type" Type="nvarchar" MaxLength="15" />
+        </EntityType>
+        <EntityType Name="patients">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="external_id" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="external_source" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="first_name" Type="nvarchar" MaxLength="50" />
+          <Property Name="last_name" Type="nvarchar" MaxLength="50" />
+          <Property Name="date_of_birth" Type="date" />
+        </EntityType>
+        <EntityType Name="result_entities">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="patient_id" Type="int" Nullable="false" />
+          <Property Name="result_file_id" Type="int" />
+          <Property Name="attribute_id" Type="int" Nullable="false" />
+          <Property Name="parent_id" Type="int" />
+          <Property Name="value_float" Type="float" />
+          <Property Name="value_int" Type="int" />
+          <Property Name="value_short_text" Type="nvarchar" MaxLength="255" />
+          <Property Name="value_text" Type="text" />
+          <Property Name="value_date_time" Type="datetime" />
+        </EntityType>
+        <EntityType Name="result_files">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="md5" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="received_on" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="result_source_id" Type="int" />
+        </EntityType>
+        <EntityType Name="result_sources">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="description" Type="nvarchar" MaxLength="255" />
+        </EntityType>
+        <Association Name="FK_result_entities_attributes">
+          <End Role="attributes" Type="Self.attributes" Multiplicity="1" />
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attributes">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities">
+              <PropertyRef Name="attribute_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_entities_patients">
+          <End Role="patients" Type="Self.patients" Multiplicity="1" />
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="patients">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities">
+              <PropertyRef Name="patient_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_entities_result_entities">
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="0..1" />
+          <End Role="result_entities1" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="result_entities">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities1">
+              <PropertyRef Name="parent_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_entities_result_files">
+          <End Role="result_files" Type="Self.result_files" Multiplicity="0..1" />
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="result_files">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities">
+              <PropertyRef Name="result_file_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_files_result_sources">
+          <End Role="result_sources" Type="Self.result_sources" Multiplicity="0..1" />
+          <End Role="result_files" Type="Self.result_files" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="result_sources">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_files">
+              <PropertyRef Name="result_source_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="EAVModelStoreContainer">
+          <EntitySet Name="attributes" EntityType="Self.attributes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="patients" EntityType="Self.patients" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="result_entities" EntityType="Self.result_entities" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="result_files" EntityType="Self.result_files" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="result_sources" EntityType="Self.result_sources" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_result_entities_attributes" Association="Self.FK_result_entities_attributes">
+            <End Role="attributes" EntitySet="attributes" />
+            <End Role="result_entities" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_entities_patients" Association="Self.FK_result_entities_patients">
+            <End Role="patients" EntitySet="patients" />
+            <End Role="result_entities" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_entities_result_entities" Association="Self.FK_result_entities_result_entities">
+            <End Role="result_entities" EntitySet="result_entities" />
+            <End Role="result_entities1" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_entities_result_files" Association="Self.FK_result_entities_result_files">
+            <End Role="result_files" EntitySet="result_files" />
+            <End Role="result_entities" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_files_result_sources" Association="Self.FK_result_files_result_sources">
+            <End Role="result_sources" EntitySet="result_sources" />
+            <End Role="result_files" EntitySet="result_files" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="EAVModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="attribute">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" />
+          <Property Name="name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Name="value_type" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="result_entities" Relationship="Self.FK_result_entities_attributes" FromRole="attributes" ToRole="result_entities" />
+        </EntityType>
+        <EntityType Name="patient">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="external_id" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="external_source" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="first_name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="last_name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="date_of_birth" Type="DateTime" Precision="0" />
+          <NavigationProperty Name="result_entities" Relationship="Self.FK_result_entities_patients" FromRole="patients" ToRole="result_entities" />
+        </EntityType>
+        <EntityType Name="result_entities">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="patient_id" Type="Int32" Nullable="false" />
+          <Property Name="result_file_id" Type="Int32" />
+          <Property Name="attribute_id" Type="Int32" Nullable="false" />
+          <Property Name="parent_id" Type="Int32" />
+          <Property Name="value_float" Type="Double" />
+          <Property Name="value_int" Type="Int32" />
+          <Property Name="value_short_text" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="value_text" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="value_date_time" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="attribute" Relationship="Self.FK_result_entities_attributes" FromRole="result_entities" ToRole="attributes" />
+          <NavigationProperty Name="patient" Relationship="Self.FK_result_entities_patients" FromRole="result_entities" ToRole="patients" />
+          <NavigationProperty Name="result_entities1" Relationship="Self.FK_result_entities_result_entities" FromRole="result_entities" ToRole="result_entities1" />
+          <NavigationProperty Name="result_entities2" Relationship="Self.FK_result_entities_result_entities" FromRole="result_entities1" ToRole="result_entities" />
+          <NavigationProperty Name="result_files" Relationship="Self.FK_result_entities_result_files" FromRole="result_entities" ToRole="result_files" />
+        </EntityType>
+        <EntityType Name="result_files">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="md5" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="received_on" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="result_source_id" Type="Int32" />
+          <NavigationProperty Name="result_entities" Relationship="Self.FK_result_entities_result_files" FromRole="result_files" ToRole="result_entities" />
+          <NavigationProperty Name="result_sources" Relationship="Self.FK_result_files_result_sources" FromRole="result_files" ToRole="result_sources" />
+        </EntityType>
+        <EntityType Name="result_sources">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="result_files" Relationship="Self.FK_result_files_result_sources" FromRole="result_sources" ToRole="result_files" />
+        </EntityType>
+        <Association Name="FK_result_entities_attributes">
+          <End Role="attributes" Type="Self.attribute" Multiplicity="1" />
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attributes">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities">
+              <PropertyRef Name="attribute_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_entities_patients">
+          <End Role="patients" Type="Self.patient" Multiplicity="1" />
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="patients">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities">
+              <PropertyRef Name="patient_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_entities_result_entities">
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="0..1" />
+          <End Role="result_entities1" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="result_entities">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities1">
+              <PropertyRef Name="parent_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_entities_result_files">
+          <End Role="result_files" Type="Self.result_files" Multiplicity="0..1" />
+          <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="result_files">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_entities">
+              <PropertyRef Name="result_file_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_result_files_result_sources">
+          <End Role="result_sources" Type="Self.result_sources" Multiplicity="0..1" />
+          <End Role="result_files" Type="Self.result_files" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="result_sources">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="result_files">
+              <PropertyRef Name="result_source_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="EAVEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="attributes" EntityType="Self.attribute" />
+          <EntitySet Name="patients" EntityType="Self.patient" />
+          <EntitySet Name="result_entities" EntityType="Self.result_entities" />
+          <EntitySet Name="result_files" EntityType="Self.result_files" />
+          <EntitySet Name="result_sources" EntityType="Self.result_sources" />
+          <AssociationSet Name="FK_result_entities_attributes" Association="Self.FK_result_entities_attributes">
+            <End Role="attributes" EntitySet="attributes" />
+            <End Role="result_entities" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_entities_patients" Association="Self.FK_result_entities_patients">
+            <End Role="patients" EntitySet="patients" />
+            <End Role="result_entities" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_entities_result_entities" Association="Self.FK_result_entities_result_entities">
+            <End Role="result_entities" EntitySet="result_entities" />
+            <End Role="result_entities1" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_entities_result_files" Association="Self.FK_result_entities_result_files">
+            <End Role="result_files" EntitySet="result_files" />
+            <End Role="result_entities" EntitySet="result_entities" />
+          </AssociationSet>
+          <AssociationSet Name="FK_result_files_result_sources" Association="Self.FK_result_files_result_sources">
+            <End Role="result_sources" EntitySet="result_sources" />
+            <End Role="result_files" EntitySet="result_files" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="EAVModelStoreContainer" CdmEntityContainer="EAVEntities">
+          <EntitySetMapping Name="attributes">
+            <EntityTypeMapping TypeName="EAVModel.attribute">
+              <MappingFragment StoreEntitySet="attributes">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="value_type" ColumnName="value_type" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="patients">
+            <EntityTypeMapping TypeName="EAVModel.patient">
+              <MappingFragment StoreEntitySet="patients">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="external_id" ColumnName="external_id" />
+                <ScalarProperty Name="external_source" ColumnName="external_source" />
+                <ScalarProperty Name="first_name" ColumnName="first_name" />
+                <ScalarProperty Name="last_name" ColumnName="last_name" />
+                <ScalarProperty Name="date_of_birth" ColumnName="date_of_birth" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="result_entities">
+            <EntityTypeMapping TypeName="EAVModel.result_entities">
+              <MappingFragment StoreEntitySet="result_entities">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="patient_id" ColumnName="patient_id" />
+                <ScalarProperty Name="result_file_id" ColumnName="result_file_id" />
+                <ScalarProperty Name="attribute_id" ColumnName="attribute_id" />
+                <ScalarProperty Name="parent_id" ColumnName="parent_id" />
+                <ScalarProperty Name="value_float" ColumnName="value_float" />
+                <ScalarProperty Name="value_int" ColumnName="value_int" />
+                <ScalarProperty Name="value_short_text" ColumnName="value_short_text" />
+                <ScalarProperty Name="value_text" ColumnName="value_text" />
+                <ScalarProperty Name="value_date_time" ColumnName="value_date_time" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="result_files">
+            <EntityTypeMapping TypeName="EAVModel.result_files">
+              <MappingFragment StoreEntitySet="result_files">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="md5" ColumnName="md5" />
+                <ScalarProperty Name="received_on" ColumnName="received_on" />
+                <ScalarProperty Name="result_source_id" ColumnName="result_source_id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="result_sources">
+            <EntityTypeMapping TypeName="EAVModel.result_sources">
+              <MappingFragment StoreEntitySet="result_sources">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="description" ColumnName="description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

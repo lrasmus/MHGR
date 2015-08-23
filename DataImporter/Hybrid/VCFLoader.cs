@@ -1,6 +1,6 @@
 ﻿using Bio.VCF;
 using MHGR.Models.Bio.VCF;
-using MHGR.Models.Hybrid;
+using MHGR.HybridModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,11 +15,6 @@ namespace MHGR.DataImporter.Hybrid
         public VariantRepository variantRepo = new VariantRepository();
         public PatientRepository patientRepo = new PatientRepository();
         public SourceRepository sourceRepo = new SourceRepository();
-
-        public override void LoadData(string[] data)
-        {
-            throw new NotImplementedException("This method is not implemented, please pass a file path to LoadData");
-        }
 
         private patient_variant_information AddVariantInformation(string attributeName, string attributeValue)
         {
@@ -65,7 +60,7 @@ namespace MHGR.DataImporter.Hybrid
             return value.Replace(string.Format("{0}=<", type), "").Replace(">", "");
         }
 
-        public void LoadData(string filePath)
+        public override void LoadData(string filePath)
         {
             var vcfParser = new VCFParser(filePath);
             var header = vcfParser.Header;
@@ -153,7 +148,8 @@ namespace MHGR.DataImporter.Hybrid
 
             // Save the collection to get its ID
             var source = sourceRepo.AddSource("VCF", "VCF file");
-            var collection = patientRepo.AddCollection(patient, source);
+            var file = AddResultFile(filePath, source);
+            var collection = patientRepo.AddCollection(patient, file);
 
             // Save the collection-level header data
             collectionInformationList.ForEach(x => x.item_id = collection.id);

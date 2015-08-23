@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="37666c8702e64ae798d8da5d74470648" Name="Diagram1">
+        <EntityTypeShape EntityType="HybridModel.gene" Width="1.5" PointX="5.75" PointY="5.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.patient_phenotypes" Width="1.5" PointX="8" PointY="9" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.patient_result_collections" Width="1.5" PointX="3" PointY="1.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.patient_result_members" Width="1.5" PointX="5.25" PointY="2" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.patient_variant_information" Width="1.5" PointX="10" PointY="0.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.patient_variants" Width="1.5" PointX="3" PointY="5.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.patient" Width="1.5" PointX="0.75" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.phenotype" Width="1.5" PointX="5.75" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.result_files" Width="1.5" PointX="0.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.result_sources" Width="1.5" PointX="1.5" PointY="10" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.variant_information_types" Width="1.5" PointX="7.75" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="HybridModel.variant" Width="1.5" PointX="8" PointY="5" IsExpanded="true" />
+        <AssociationConnector Association="HybridModel.FK_variants_genes" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_patient_phenotypes_phenotypes" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_patient_result_collections_patients" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_patient_result_collections_result_files" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_patient_result_members_patient_result_collections" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_patient_variant_information_variant_information_types" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_patient_variants_patients" ManuallyRouted="false" />
+        <AssociationConnector Association="HybridModel.FK_result_files_result_sources" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
