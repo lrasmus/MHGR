@@ -13,12 +13,6 @@ namespace MHGR.HybridModels
         private SourceRepository sourceRepo = new SourceRepository();
         private PatientRepository patientRepo = new PatientRepository();
 
-        public class StarVariantResult
-        {
-            public string Gene;
-            public string Result;
-        }
-
         public gene AddGene(string name, string symbol, string externalId, string externalSource, string chromosome)
         {
             var existingGene = (from g in entities.genes
