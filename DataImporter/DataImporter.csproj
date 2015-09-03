@@ -55,6 +55,7 @@
     <Compile Include="EAV\BaseLoader.cs" />
     <Compile Include="EAV\EAVLoader.cs" />
     <Compile Include="EAV\PhenotypeLoader.cs" />
+    <Compile Include="EAV\SNPLoader.cs" />
     <Compile Include="Hybrid\HybridLoader.cs" />
     <Compile Include="Hybrid\VCFLoader.cs" />
     <Compile Include="Program.cs" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MHGR.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,36 @@ namespace MHGR.EAVModels
             entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity });
             entities.SaveChanges();
             return rootEntity;
+        }
+
+        public result_entities[] AddSnps(result_files resultFile, patient patient, DateTime? resultedOn, List<SnpResult> snps)
+        {
+            var results = new List<result_entities>();
+            foreach (var snp in snps)
+            {
+                result_entities rootEntity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(snp.RSID, "dbSNP", snp.RSID, snp.RSID).id,
+                    value_short_text = snp.Genotype
+                };
+
+                result_entities resultedOnEntity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(null, null, "Resulted on", null).id,
+                    parent = rootEntity,
+                    value_date_time = resultedOn
+                };
+
+                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity });
+                results.Add(rootEntity);
+            }
+
+            entities.SaveChanges();
+            return results.ToArray();
         }
 
         /// <summary>

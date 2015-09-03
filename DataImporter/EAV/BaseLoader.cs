@@ -26,18 +26,12 @@ namespace MHGR.DataImporter.EAV
         }
 
         /// <summary>
-        /// Check the counts of the database tables to ensure they meet what's expected
+        /// 
         /// </summary>
         /// <param name="patients"></param>
-        /// <param name="phenotypes"></param>
-        /// <param name="genes"></param>
-        /// <param name="variants"></param>
-        /// <param name="patientPhenotypes"></param>
-        /// <param name="patientVariants"></param>
-        /// <param name="patientResultCollections"></param>
-        /// <param name="patientResultMembers"></param>
-        /// <param name="patientVariantInformation"></param>
-        /// <param name="variantInformationTypes"></param>
+        /// <param name="resultEntities"></param>
+        /// <param name="resultFiles"></param>
+        /// <param name="resultSources"></param>
         /// <returns></returns>
         public bool ConsistencyChecks(int patients, int resultEntities, int resultFiles, int resultSources)
         {
@@ -47,13 +41,6 @@ namespace MHGR.DataImporter.EAV
             isValid = isValid && CheckEntityCounts(resultEntities, entities.result_entities.Count(), "result entities");
             isValid = isValid && CheckEntityCounts(resultFiles, entities.result_files.Count(), "result files");
             isValid = isValid && CheckEntityCounts(resultSources, entities.result_sources.Count(), "result sources");
-            //isValid = isValid && CheckEntityCounts(patientPhenotypes, entities.patient_phenotypes.Count(), "patient phenotypes");
-            //isValid = isValid && CheckEntityCounts(patientVariants, entities.patient_variants.Count(), "patient variants");
-            //isValid = isValid && CheckEntityCounts(patientResultCollections, entities.patient_result_collections.Count(), "patient result collections");
-            //isValid = isValid && CheckEntityCounts(patientResultMembers, entities.patient_result_members.Count(), "patient result members");
-            //isValid = isValid && CheckEntityCounts(patientVariantInformation, entities.patient_variant_information.Count(), "patient variant information");
-            //isValid = isValid && CheckEntityCounts(variantInformationTypes, entities.variant_information_types.Count(), "variant information type");
-
             return isValid;
         }
     }
