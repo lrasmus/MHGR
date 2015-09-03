@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EAVModels
+namespace MHGR.EAVModels
 {
     using System;
     using System.Collections.Generic;
@@ -18,14 +18,25 @@ namespace EAVModels
         public attribute()
         {
             this.result_entities = new HashSet<result_entities>();
+            this.attribute_relationships = new HashSet<attribute_relationships>();
+            this.attribute_relationships1 = new HashSet<attribute_relationships>();
+            this.attribute_relationships2 = new HashSet<attribute_relationships>();
         }
     
         public int id { get; set; }
         public string name { get; set; }
         public string description { get; set; }
         public string value_type { get; set; }
+        public string code { get; set; }
+        public string code_system { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<result_entities> result_entities { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<attribute_relationships> attribute_relationships { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<attribute_relationships> attribute_relationships1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<attribute_relationships> attribute_relationships2 { get; set; }
     }
 }

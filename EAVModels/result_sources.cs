@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EAVModels
+namespace MHGR.EAVModels
 {
     using System;
     using System.Collections.Generic;

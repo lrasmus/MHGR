@@ -44,7 +44,6 @@
     <Folder Include="Data\SNP\" />
     <Folder Include="Data\StarVariant\" />
     <Folder Include="Data\VCF\" />
-    <Folder Include="Schemas\EAV\" />
     <Folder Include="Schemas\Relational\" />
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +58,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Schemas\EAV\descructive_create.sql" />
     <Content Include="Schemas\Hybrid\destructive_create.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

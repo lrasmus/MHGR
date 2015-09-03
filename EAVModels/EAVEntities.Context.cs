@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EAVModels
+namespace MHGR.EAVModels
 {
     using System;
     using System.Data.Entity;
@@ -30,5 +30,6 @@ namespace EAVModels
         public virtual DbSet<result_entities> result_entities { get; set; }
         public virtual DbSet<result_files> result_files { get; set; }
         public virtual DbSet<result_sources> result_sources { get; set; }
+        public virtual DbSet<attribute_relationships> attribute_relationships { get; set; }
     }
 }

@@ -7,7 +7,7 @@
     <ProjectGuid>{A4A2DAC4-6B8F-4C7A-8AA5-7374FDF41B10}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EAVModels</RootNamespace>
+    <RootNamespace>MHGR.EAVModels</RootNamespace>
     <AssemblyName>EAVModels</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -55,6 +55,10 @@
     <Compile Include="attribute.cs">
       <DependentUpon>EAVEntities.tt</DependentUpon>
     </Compile>
+    <Compile Include="AttributeRepository.cs" />
+    <Compile Include="attribute_relationships.cs">
+      <DependentUpon>EAVEntities.tt</DependentUpon>
+    </Compile>
     <Compile Include="EAVEntities.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -71,9 +75,11 @@
       <DependentUpon>EAVEntities.edmx</DependentUpon>
     </Compile>
     <Compile Include="EntityRepository.cs" />
+    <Compile Include="FileRepository.cs" />
     <Compile Include="patient.cs">
       <DependentUpon>EAVEntities.tt</DependentUpon>
     </Compile>
+    <Compile Include="PatientRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="result_entities.cs">
       <DependentUpon>EAVEntities.tt</DependentUpon>
@@ -84,6 +90,7 @@
     <Compile Include="result_sources.cs">
       <DependentUpon>EAVEntities.tt</DependentUpon>
     </Compile>
+    <Compile Include="SourceRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

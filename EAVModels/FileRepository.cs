@@ -1,15 +1,14 @@
-﻿using MHGR.HybridModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MHGR.HybridModels
+namespace MHGR.EAVModels
 {
     public class FileRepository
     {
-        private HybridEntities entities = new HybridEntities();
+        private EAVEntities entities = new EAVEntities();
 
         public result_files AddResultFile(result_files file)
         {

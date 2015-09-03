@@ -4,7 +4,16 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="EAVModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="EAVModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="attribute_relationships">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="attribute1_id" Type="int" Nullable="false" />
+          <Property Name="attribute2_id" Type="int" Nullable="false" />
+          <Property Name="relationship_id" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="attributes">
           <Key>
             <PropertyRef Name="id" />
@@ -13,6 +22,8 @@
           <Property Name="name" Type="nvarchar" MaxLength="255" Nullable="false" />
           <Property Name="description" Type="nvarchar" MaxLength="1000" />
           <Property Name="value_type" Type="nvarchar" MaxLength="15" />
+          <Property Name="code" Type="nvarchar" MaxLength="50" />
+          <Property Name="code_system" Type="nvarchar" MaxLength="40" />
         </EntityType>
         <EntityType Name="patients">
           <Key>
@@ -58,6 +69,42 @@
           <Property Name="name" Type="nvarchar" MaxLength="100" Nullable="false" />
           <Property Name="description" Type="nvarchar" MaxLength="255" />
         </EntityType>
+        <Association Name="FK_attribute_relationships_attributes">
+          <End Role="attributes" Type="Self.attributes" Multiplicity="1" />
+          <End Role="attribute_relationships" Type="Self.attribute_relationships" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attributes">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="attribute_relationships">
+              <PropertyRef Name="attribute1_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_attribute_relationships_attributes1">
+          <End Role="attributes" Type="Self.attributes" Multiplicity="1" />
+          <End Role="attribute_relationships" Type="Self.attribute_relationships" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attributes">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="attribute_relationships">
+              <PropertyRef Name="attribute2_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_attribute_relationships_attributes2">
+          <End Role="attributes" Type="Self.attributes" Multiplicity="1" />
+          <End Role="attribute_relationships" Type="Self.attribute_relationships" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attributes">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="attribute_relationships">
+              <PropertyRef Name="relationship_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_result_entities_attributes">
           <End Role="attributes" Type="Self.attributes" Multiplicity="1" />
           <End Role="result_entities" Type="Self.result_entities" Multiplicity="*" />
@@ -119,11 +166,24 @@
           </ReferentialConstraint>
         </Association>
         <EntityContainer Name="EAVModelStoreContainer">
+          <EntitySet Name="attribute_relationships" EntityType="Self.attribute_relationships" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="attributes" EntityType="Self.attributes" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="patients" EntityType="Self.patients" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="result_entities" EntityType="Self.result_entities" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="result_files" EntityType="Self.result_files" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="result_sources" EntityType="Self.result_sources" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_attribute_relationships_attributes" Association="Self.FK_attribute_relationships_attributes">
+            <End Role="attributes" EntitySet="attributes" />
+            <End Role="attribute_relationships" EntitySet="attribute_relationships" />
+          </AssociationSet>
+          <AssociationSet Name="FK_attribute_relationships_attributes1" Association="Self.FK_attribute_relationships_attributes1">
+            <End Role="attributes" EntitySet="attributes" />
+            <End Role="attribute_relationships" EntitySet="attribute_relationships" />
+          </AssociationSet>
+          <AssociationSet Name="FK_attribute_relationships_attributes2" Association="Self.FK_attribute_relationships_attributes2">
+            <End Role="attributes" EntitySet="attributes" />
+            <End Role="attribute_relationships" EntitySet="attribute_relationships" />
+          </AssociationSet>
           <AssociationSet Name="FK_result_entities_attributes" Association="Self.FK_result_entities_attributes">
             <End Role="attributes" EntitySet="attributes" />
             <End Role="result_entities" EntitySet="result_entities" />
@@ -145,8 +205,7 @@
             <End Role="result_files" EntitySet="result_files" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="EAVModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -159,6 +218,11 @@
           <Property Name="description" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
           <Property Name="value_type" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="result_entities" Relationship="Self.FK_result_entities_attributes" FromRole="attributes" ToRole="result_entities" />
+          <NavigationProperty Name="attribute_relationships" Relationship="EAVModel.FK_attribute_relationships_attributes" FromRole="attribute" ToRole="attribute_relationships" />
+          <NavigationProperty Name="attribute_relationships1" Relationship="EAVModel.FK_attribute_relationships_attributes1" FromRole="attribute" ToRole="attribute_relationships" />
+          <NavigationProperty Name="attribute_relationships2" Relationship="EAVModel.FK_attribute_relationships_attributes2" FromRole="attribute" ToRole="attribute_relationships" />
+          <Property Name="code" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="code_system" Type="String" MaxLength="40" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="patient">
           <Key>
@@ -189,7 +253,7 @@
           <NavigationProperty Name="attribute" Relationship="Self.FK_result_entities_attributes" FromRole="result_entities" ToRole="attributes" />
           <NavigationProperty Name="patient" Relationship="Self.FK_result_entities_patients" FromRole="result_entities" ToRole="patients" />
           <NavigationProperty Name="result_entities1" Relationship="Self.FK_result_entities_result_entities" FromRole="result_entities" ToRole="result_entities1" />
-          <NavigationProperty Name="result_entities2" Relationship="Self.FK_result_entities_result_entities" FromRole="result_entities1" ToRole="result_entities" />
+          <NavigationProperty Name="parent" Relationship="Self.FK_result_entities_result_entities" FromRole="result_entities1" ToRole="result_entities" />
           <NavigationProperty Name="result_files" Relationship="Self.FK_result_entities_result_files" FromRole="result_entities" ToRole="result_files" />
         </EntityType>
         <EntityType Name="result_files">
@@ -299,7 +363,68 @@
             <End Role="result_sources" EntitySet="result_sources" />
             <End Role="result_files" EntitySet="result_files" />
           </AssociationSet>
+          <EntitySet Name="attribute_relationships" EntityType="EAVModel.attribute_relationships" />
+          <AssociationSet Name="FK_attribute_relationships_attributes" Association="EAVModel.FK_attribute_relationships_attributes">
+            <End Role="attribute" EntitySet="attributes" />
+            <End Role="attribute_relationships" EntitySet="attribute_relationships" />
+          </AssociationSet>
+          <AssociationSet Name="FK_attribute_relationships_attributes1" Association="EAVModel.FK_attribute_relationships_attributes1">
+            <End Role="attribute" EntitySet="attributes" />
+            <End Role="attribute_relationships" EntitySet="attribute_relationships" />
+          </AssociationSet>
+          <AssociationSet Name="FK_attribute_relationships_attributes2" Association="EAVModel.FK_attribute_relationships_attributes2">
+            <End Role="attribute" EntitySet="attributes" />
+            <End Role="attribute_relationships" EntitySet="attribute_relationships" />
+          </AssociationSet>
         </EntityContainer>
+        <EntityType Name="attribute_relationships">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="attribute1_id" Type="Int32" Nullable="false" />
+          <Property Name="attribute2_id" Type="Int32" Nullable="false" />
+          <Property Name="relationship_id" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="attribute" Relationship="EAVModel.FK_attribute_relationships_attributes" FromRole="attribute_relationships" ToRole="attribute" />
+          <NavigationProperty Name="attribute1" Relationship="EAVModel.FK_attribute_relationships_attributes1" FromRole="attribute_relationships" ToRole="attribute" />
+          <NavigationProperty Name="attribute2" Relationship="EAVModel.FK_attribute_relationships_attributes2" FromRole="attribute_relationships" ToRole="attribute" />
+        </EntityType>
+        <Association Name="FK_attribute_relationships_attributes">
+          <End Type="EAVModel.attribute" Role="attribute" Multiplicity="1" />
+          <End Type="EAVModel.attribute_relationships" Role="attribute_relationships" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attribute">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="attribute_relationships">
+              <PropertyRef Name="attribute1_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_attribute_relationships_attributes1">
+          <End Type="EAVModel.attribute" Role="attribute" Multiplicity="1" />
+          <End Type="EAVModel.attribute_relationships" Role="attribute_relationships" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attribute">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="attribute_relationships">
+              <PropertyRef Name="attribute2_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_attribute_relationships_attributes2">
+          <End Type="EAVModel.attribute" Role="attribute" Multiplicity="1" />
+          <End Type="EAVModel.attribute_relationships" Role="attribute_relationships" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="attribute">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="attribute_relationships">
+              <PropertyRef Name="relationship_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -309,6 +434,8 @@
           <EntitySetMapping Name="attributes">
             <EntityTypeMapping TypeName="EAVModel.attribute">
               <MappingFragment StoreEntitySet="attributes">
+                <ScalarProperty Name="code_system" ColumnName="code_system" />
+                <ScalarProperty Name="code" ColumnName="code" />
                 <ScalarProperty Name="id" ColumnName="id" />
                 <ScalarProperty Name="name" ColumnName="name" />
                 <ScalarProperty Name="description" ColumnName="description" />
@@ -361,6 +488,16 @@
                 <ScalarProperty Name="id" ColumnName="id" />
                 <ScalarProperty Name="name" ColumnName="name" />
                 <ScalarProperty Name="description" ColumnName="description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="attribute_relationships">
+            <EntityTypeMapping TypeName="EAVModel.attribute_relationships">
+              <MappingFragment StoreEntitySet="attribute_relationships">
+                <ScalarProperty Name="relationship_id" ColumnName="relationship_id" />
+                <ScalarProperty Name="attribute2_id" ColumnName="attribute2_id" />
+                <ScalarProperty Name="attribute1_id" ColumnName="attribute1_id" />
+                <ScalarProperty Name="id" ColumnName="id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

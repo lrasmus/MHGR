@@ -51,7 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseLoader.cs" />
+    <Compile Include="EAV\BaseLoader.cs" />
     <Compile Include="EAV\EAVLoader.cs" />
+    <Compile Include="EAV\PhenotypeLoader.cs" />
     <Compile Include="Hybrid\HybridLoader.cs" />
     <Compile Include="Hybrid\VCFLoader.cs" />
     <Compile Include="Program.cs" />

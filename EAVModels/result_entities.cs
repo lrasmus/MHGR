@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EAVModels
+namespace MHGR.EAVModels
 {
     using System;
     using System.Collections.Generic;
@@ -35,7 +35,7 @@ namespace EAVModels
         public virtual patient patient { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<result_entities> result_entities1 { get; set; }
-        public virtual result_entities result_entities2 { get; set; }
+        public virtual result_entities parent { get; set; }
         public virtual result_files result_files { get; set; }
     }
 }

@@ -15,6 +15,10 @@
         <AssociationConnector Association="EAVModel.FK_result_entities_result_entities" ManuallyRouted="false" />
         <AssociationConnector Association="EAVModel.FK_result_entities_result_files" ManuallyRouted="false" />
         <AssociationConnector Association="EAVModel.FK_result_files_result_sources" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="EAVModel.attribute_relationships" Width="1.5" PointX="5.25" PointY="5.875" />
+        <AssociationConnector Association="EAVModel.FK_attribute_relationships_attributes" />
+        <AssociationConnector Association="EAVModel.FK_attribute_relationships_attributes1" />
+        <AssociationConnector Association="EAVModel.FK_attribute_relationships_attributes2" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
