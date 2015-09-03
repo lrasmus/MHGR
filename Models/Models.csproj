@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bio.VCF\GenotypeExt.cs" />
+    <Compile Include="Bio.VCF\VCFSimpleHeaderLineExt.cs" />
     <Compile Include="GVF\Feature.cs" />
     <Compile Include="GVF\Pragma.cs" />
     <Compile Include="GVF\Tag.cs" />

@@ -57,27 +57,49 @@ namespace MHGR.DataImporter.EAV
             //    Console.WriteLine("Passed - Consistency checks passed for star variant data load");
             //}
 
-            timer = DateTime.Now;
+            //timer = DateTime.Now;
             string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
+            //foreach (var file in files)
+            //{
+            //    var gvfLoader = new GVFLoader();
+            //    gvfLoader.LoadData(file);
+            //}
+            //Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
+
+            //var gvfChecker = new GVFLoader();
+            //// Result entity count isn't a round number anymore because we have a variable number of
+            //// results per variant per patient (e.g. homozygous vs. heterozygous).
+            //if (!gvfChecker.ConsistencyChecks(1000, 657159, 15001, 3))
+            //{
+            //    Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
+            //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
+            //    return;
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Passed - Consistency checks passed for GVF data load");
+            //}
+
+
+            timer = DateTime.Now;
+            files = Directory.GetFiles(ConfigurationManager.AppSettings["VCFDataPath"], ConfigurationManager.AppSettings["VCFDataFilter"]);
             foreach (var file in files)
             {
-                var gvfLoader = new GVFLoader();
-                gvfLoader.LoadData(file);
+                var vcfLoader = new VCFLoader();
+                vcfLoader.LoadData(file);
             }
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
 
-            var gvfChecker = new GVFLoader();
-            // Result entity count isn't a round number anymore because we have a variable number of
-            // results per variant per patient (e.g. homozygous vs. heterozygous).
-            if (!gvfChecker.ConsistencyChecks(1000, 657159, 15001, 3))
+            var vcfChecker = new VCFLoader();
+            if (!vcfChecker.ConsistencyChecks(1000, 657159, 15001, 3))
             {
-                Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
+                Console.WriteLine("FAILED - Results of the VCF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
                 return;
             }
             else
             {
-                Console.WriteLine("Passed - Consistency checks passed for GVF data load");
+                Console.WriteLine("Passed - Consistency checks passed for VCF data load");
             }
         }
     }

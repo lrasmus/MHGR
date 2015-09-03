@@ -43,5 +43,32 @@ namespace MHGR.DataImporter.EAV
             isValid = isValid && CheckEntityCounts(resultSources, entities.result_sources.Count(), "result sources");
             return isValid;
         }
+
+        protected void SetEntityValue(result_entities entity, attribute attribute, string value)
+        {
+            switch (attribute.value_type)
+            {
+                case "float":
+                    entity.value_float = float.Parse(value);
+                    break;
+                case "int":
+                    entity.value_int = int.Parse(value);
+                    break;
+                case "short_text":
+                    entity.value_short_text = value;
+                    break;
+                case "text":
+                    entity.value_text = value;
+                    break;
+                case "date_time":
+                    entity.value_date_time = DateTime.Parse(value);
+                    break;
+                case "binary":
+                    break;
+                default:
+                    entity.value_text = value;
+                    break;
+            }
+        }
     }
 }

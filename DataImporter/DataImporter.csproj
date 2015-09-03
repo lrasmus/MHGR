@@ -58,6 +58,7 @@
     <Compile Include="EAV\PhenotypeLoader.cs" />
     <Compile Include="EAV\SNPLoader.cs" />
     <Compile Include="EAV\StarVariantLoader.cs" />
+    <Compile Include="EAV\VCFLoader.cs" />
     <Compile Include="GVF\GVFParserHelper.cs" />
     <Compile Include="Hybrid\HybridLoader.cs" />
     <Compile Include="Hybrid\VCFLoader.cs" />

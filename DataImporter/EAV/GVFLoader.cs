@@ -205,30 +205,5 @@ namespace MHGR.DataImporter.EAV
             SetEntityValue(entity, attribute, value);
             return entity;
         }
-
-        private void SetEntityValue(result_entities entity, attribute attribute, string value)
-        {
-            switch (attribute.value_type)
-            {
-                case "float":
-                    entity.value_float = float.Parse(value);
-                    break;
-                case "int":
-                    entity.value_int = int.Parse(value);
-                    break;
-                case "short_text":
-                    entity.value_short_text = value;
-                    break;
-                case "text":
-                    entity.value_text = value;
-                    break;
-                case "date_time":
-                    entity.value_date_time = DateTime.Parse(value);
-                    break;
-                default:
-                    entity.value_text = value;
-                    break;
-            }
-        }
     }
 }
