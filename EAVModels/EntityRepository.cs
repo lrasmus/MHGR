@@ -69,13 +69,14 @@ namespace MHGR.EAVModels
             var results = new List<result_entities>();
             foreach (var star in stars)
             {
+                var entityParts = new List<result_entities>();
                 result_entities rootEntity = new result_entities()
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(star.Gene, "HGNC", star.Gene, star.Gene).id,
-                    value_short_text = star.Result
+                    attribute_id = GetAttribute(star.Gene, "HGNC", star.Gene, star.Gene).id
                 };
+                entityParts.Add(rootEntity);
 
                 result_entities resultedOnEntity = new result_entities()
                 {
@@ -85,17 +86,23 @@ namespace MHGR.EAVModels
                     parent = rootEntity,
                     value_date_time = resultedOn
                 };
+                entityParts.Add(resultedOnEntity);
 
-                result_entities resultTypeEntity = new result_entities()
+                string[] splitStars = star.Result.Split(new string[] { "*" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var value in splitStars)
                 {
-                    patient_id = patient.id,
-                    result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "Gene result type", null).id,
-                    parent = rootEntity,
-                    value_short_text = "Star allele"
-                };
+                    result_entities alleleEntity = new result_entities()
+                    {
+                        patient_id = patient.id,
+                        result_file_id = resultFile.id,
+                        attribute_id = GetAttribute(null, null, "Star allele", null).id,
+                        parent = rootEntity,
+                        value_short_text = value
+                    };
+                    entityParts.Add(alleleEntity);
+                }
 
-                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity, resultTypeEntity });
+                entities.result_entities.AddRange(entityParts);
                 results.Add(rootEntity);
             }
 
