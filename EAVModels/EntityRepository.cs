@@ -39,12 +39,12 @@ namespace MHGR.EAVModels
             var results = new List<result_entities>();
             foreach (var snp in snps)
             {
+                var entityParts = new List<result_entities>();
                 result_entities rootEntity = new result_entities()
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
                     attribute_id = GetAttribute(snp.RSID, "dbSNP", snp.RSID, snp.RSID).id,
-                    value_short_text = snp.Genotype
                 };
 
                 result_entities resultedOnEntity = new result_entities()
@@ -56,7 +56,25 @@ namespace MHGR.EAVModels
                     value_date_time = resultedOn
                 };
 
-                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity });
+                result_entities allele1Entity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(null, null, "Allele", null).id,
+                    parent = rootEntity,
+                    value_short_text = snp.Genotype[0].ToString()
+                };
+
+                result_entities allele2Entity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(null, null, "Allele", null).id,
+                    parent = rootEntity,
+                    value_short_text = snp.Genotype[1].ToString()
+                };
+
+                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity, allele1Entity, allele2Entity });
                 results.Add(rootEntity);
             }
 
@@ -95,7 +113,7 @@ namespace MHGR.EAVModels
                     {
                         patient_id = patient.id,
                         result_file_id = resultFile.id,
-                        attribute_id = GetAttribute(null, null, "Star allele", null).id,
+                        attribute_id = GetAttribute(null, null, "Allele", null).id,
                         parent = rootEntity,
                         value_short_text = value
                     };

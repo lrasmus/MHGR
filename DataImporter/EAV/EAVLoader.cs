@@ -30,7 +30,7 @@ namespace MHGR.DataImporter.EAV
             //var snpLoader = new SNPLoader();
             //snpLoader.LoadData(ConfigurationManager.AppSettings["SNPData"]);
             //Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
-            //if (!snpLoader.ConsistencyChecks(1000, 74000, 5001, 3))
+            //if (!snpLoader.ConsistencyChecks(1000, 138000, 5001, 3))
             //{
             //    Console.WriteLine("FAILED - Results of the SNP load do not match internal consistency checks.");
             //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -45,7 +45,7 @@ namespace MHGR.DataImporter.EAV
             var starVariantLoader = new StarVariantLoader();
             starVariantLoader.LoadData(ConfigurationManager.AppSettings["StarVariantData"]);
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
-            if (!starVariantLoader.ConsistencyChecks(1000, 86000, 10001, 3))
+            if (!starVariantLoader.ConsistencyChecks(1000, 150000, 10001, 3))
             {
                 Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
