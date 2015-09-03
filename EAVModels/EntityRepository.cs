@@ -128,6 +128,14 @@ namespace MHGR.EAVModels
             return results.ToArray();
         }
 
+        public result_entities AddGVF(result_entities entity, List<result_entities> pragmaEntities)
+        {
+            entities.result_entities.Add(entity);
+            entities.result_entities.AddRange(pragmaEntities);
+            entities.SaveChanges();
+            return entity;
+        }
+
         /// <summary>
         /// One known limitation - we assume that the three search types (code, name or value) are
         /// unique, but this is rarely the case.  This should be expanded so that it attempts to

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MHGR.DataImporter.Hybrid
+namespace MHGR.DataImporter.GVF
 {
     public class PragmaParser
     {

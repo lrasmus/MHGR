@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MHGR.DataImporter.GVF;
 
 namespace MHGR.DataImporter.Hybrid
 {
@@ -14,57 +15,10 @@ namespace MHGR.DataImporter.Hybrid
         public const char Delimiter = '\t';
         public char[] CommentTrimChars = new[] { ' ', '\t', '\r', '\n', '#' };
         private PragmaParser pragmaParser = new PragmaParser();
-        private KeyValueParser kvParser = new KeyValueParser();
         private PhenotypeRepository phenotypeRepo = new PhenotypeRepository();
         private PatientRepository patientRepo = new PatientRepository();
         private VariantRepository variantRepo = new VariantRepository();
         private SourceRepository sourceRepo = new SourceRepository();
-
-        private enum RowType
-        {
-            Blank = 1,
-            Pragma = 2,
-            Comment = 3,
-            Data = 4
-        }
-
-        private static RowType GetRowType(string row)
-        {
-            string normalizedRow = row.Trim();
-            if (row.StartsWith("##"))
-            {
-                return RowType.Pragma;
-            }
-            else if (row.StartsWith("#"))
-            {
-                return RowType.Comment;
-            }
-            else if (string.IsNullOrEmpty(row))
-            {
-                return RowType.Blank;
-            }
-
-            return RowType.Data;
-        }
-
-        private Feature ParseFeature(string data)
-        {
-            string[] fields = data.Split(Delimiter);
-            var feature = new Feature()
-            {
-                SequenceId = fields[0],
-                Source = fields[1],
-                Type = fields[2],
-                StartPosition = int.Parse(fields[3]),
-                EndPosition = int.Parse(fields[4]),
-                Score = fields[5],
-                Strand = fields[6],
-                Phase = fields[7],
-                Attributes = kvParser.Parse(fields[8])
-            };
-
-            return feature;
-        }
 
         private patient_variant_information AddPragmaInformation(string pragmaName, string pragmaValue)
         {
@@ -111,18 +65,18 @@ namespace MHGR.DataImporter.Hybrid
             List<Feature> features = new List<Feature>();
             foreach (var row in data)
             {
-                switch (GetRowType(row))
+                switch (GVFParserHelper.GetRowType(row))
                 {
-                    case RowType.Pragma: {
+                    case GVFParserHelper.RowType.Pragma: {
                         pragmas.Add(pragmaParser.Parse(row));
                         break;
                     }
-                    case RowType.Comment: {
+                    case GVFParserHelper.RowType.Comment: {
                         comments.Add(row.Trim(CommentTrimChars));
                         break;
                     }
-                    case RowType.Data: {
-                        features.Add(ParseFeature(row));
+                    case GVFParserHelper.RowType.Data: {
+                        features.Add(GVFParserHelper.ParseFeature(row));
                         break;
                     }
                 }

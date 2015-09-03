@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,19 +42,40 @@ namespace MHGR.DataImporter.EAV
             //    Console.WriteLine("Passed - Consistency checks passed for SNP data load");
             //}
 
+            //timer = DateTime.Now;
+            //var starVariantLoader = new StarVariantLoader();
+            //starVariantLoader.LoadData(ConfigurationManager.AppSettings["StarVariantData"]);
+            //Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
+            //if (!starVariantLoader.ConsistencyChecks(1000, 150000, 10001, 3))
+            //{
+            //    Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
+            //    Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
+            //    return;
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Passed - Consistency checks passed for star variant data load");
+            //}
+
             timer = DateTime.Now;
-            var starVariantLoader = new StarVariantLoader();
-            starVariantLoader.LoadData(ConfigurationManager.AppSettings["StarVariantData"]);
-            Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
-            if (!starVariantLoader.ConsistencyChecks(1000, 150000, 10001, 3))
+            string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["GVFDataPath"], ConfigurationManager.AppSettings["GVFDataFilter"]);
+            foreach (var file in files)
             {
-                Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
+                var gvfLoader = new GVFLoader();
+                gvfLoader.LoadData(file);
+            }
+            Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
+
+            var gvfChecker = new GVFLoader();
+            if (!gvfChecker.ConsistencyChecks(1000, 150000, 10001, 3))
+            {
+                Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
                 return;
             }
             else
             {
-                Console.WriteLine("Passed - Consistency checks passed for star variant data load");
+                Console.WriteLine("Passed - Consistency checks passed for GVF data load");
             }
         }
     }
