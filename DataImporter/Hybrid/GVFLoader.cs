@@ -142,7 +142,7 @@ namespace MHGR.DataImporter.Hybrid
             {
                 var variant = variantRepo.AddVariant(null, 
                     feature.Attributes.FirstOrDefault(x => x.Name == "ID").Value, "dbSNP", 
-                    feature.SequenceId, feature.StartPosition, feature.EndPosition, genomeBuild,
+                    feature.Chromosome, feature.StartPosition, feature.EndPosition, genomeBuild,
                     feature.Attributes.FirstOrDefault(x => x.Name == "Reference_seq").Value);
                 var patientVariant = new patient_variants()
                 {

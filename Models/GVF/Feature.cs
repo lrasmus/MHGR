@@ -8,7 +8,7 @@ namespace MHGR.Models.GVF
 {
     public class Feature
     {
-        public string SequenceId { get; set; }
+        public string Chromosome { get; set; }
         public string Source { get; set; }
         public string Type { get; set; }
         public int StartPosition { get; set; }

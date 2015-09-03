@@ -44,7 +44,7 @@ namespace MHGR.DataImporter.GVF
             string[] fields = data.Split(Delimiter);
             var feature = new Feature()
             {
-                SequenceId = fields[0],
+                Chromosome = fields[0],
                 Source = fields[1],
                 Type = fields[2],
                 StartPosition = int.Parse(fields[3]),
