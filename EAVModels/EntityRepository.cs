@@ -128,10 +128,11 @@ namespace MHGR.EAVModels
             return results.ToArray();
         }
 
-        public result_entities AddGVF(result_entities entity, List<result_entities> pragmaEntities)
+        public result_entities AddGVF(result_entities entity, List<result_entities> pragmaEntities, List<result_entities> featureEntities)
         {
             entities.result_entities.Add(entity);
             entities.result_entities.AddRange(pragmaEntities);
+            entities.result_entities.AddRange(featureEntities);
             entities.SaveChanges();
             return entity;
         }

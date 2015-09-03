@@ -67,7 +67,9 @@ namespace MHGR.DataImporter.EAV
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
 
             var gvfChecker = new GVFLoader();
-            if (!gvfChecker.ConsistencyChecks(1000, 150000, 10001, 3))
+            // Result entity count isn't a round number anymore because we have a variable number of
+            // results per variant per patient (e.g. homozygous vs. heterozygous).
+            if (!gvfChecker.ConsistencyChecks(1000, 657159, 15001, 3))
             {
                 Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");

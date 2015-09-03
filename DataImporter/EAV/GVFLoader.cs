@@ -103,7 +103,15 @@ namespace MHGR.DataImporter.EAV
                     {
                         foreach (var tag in pragma.Tags)
                         {
-                            //collectionInformationList.Add(AddPragmaInformation(string.Format("GVF:{0}:{1}", pragma.Name, tag.Name), tag.Value));
+                            var attribute = EntityRepository.GetAttribute(tag.Name, "GVF", tag.Name, null);
+                            var tagEntity = new result_entities()
+                            {
+                                attribute_id = attribute.id,
+                                result_file_id = file.id,
+                                parent = pragmaEntity,
+                            };
+                            SetEntityValue(tagEntity, attribute, tag.Value);
+                            pragmaEntities.Add(tagEntity);
                         }
                     }
                     else
@@ -114,70 +122,113 @@ namespace MHGR.DataImporter.EAV
                 }
             }
 
+
+            // Convert all comments into individual variant information entries
+            foreach (var comment in comments)
+            {
+                pragmaEntities.Add(new result_entities()
+                {
+                    attribute_id = EntityRepository.GetAttribute("Comment", "GVF", "Comment", null).id,
+                    result_file_id = file.id,
+                    parent = rootEntity,
+                    value_text = comment
+                });
+            }
+
             rootEntity.patient_id = patient.id;
             pragmaEntities.ForEach(x => x.patient_id = patient.id);
 
-            entityRepo.AddGVF(rootEntity, pragmaEntities);
+            var featureEntities = new List<result_entities>();
+            foreach (var feature in features)
+            {
+                var gvfEntity = new result_entities()
+                {
+                    attribute_id = EntityRepository.GetAttribute(null, null, "Genomic Variant Format feature", null).id,
+                    patient_id = patient.id,
+                    result_file_id = file.id,
+                    parent = rootEntity
+                };
+                featureEntities.Add(gvfEntity);
 
-            //// Convert all comments into individual variant information entries
-            //foreach (var comment in comments)
-            //{
-            //    collectionInformationList.Add(AddPragmaInformation("GVF:Comment", comment));
-            //}
+                featureEntities.Add(new result_entities()
+                {
+                    attribute_id = EntityRepository.GetAttribute("Chromosome", "GVF", null, null).id,
+                    patient_id = patient.id,
+                    result_file_id = file.id,
+                    parent = gvfEntity,
+                    value_short_text = feature.Chromosome
+                });
 
-            //// Go through the individual features and build up both reference variants and
-            //// the patient-level variants
-            //var patientVariants = new List<patient_variants>();
-            //var featureInformationList = new Dictionary<patient_variants, List<patient_variant_information>>();
-            //foreach (var feature in features)
-            //{
-            //    var variant = variantRepo.AddVariant(null,
-            //        feature.Attributes.FirstOrDefault(x => x.Name == "ID").Value, "dbSNP",
-            //        feature.SequenceId, feature.StartPosition, feature.EndPosition, genomeBuild,
-            //        feature.Attributes.FirstOrDefault(x => x.Name == "Reference_seq").Value);
-            //    var patientVariant = new patient_variants()
-            //    {
-            //        patient_id = patient.id,
-            //        reference_id = variant.id,
-            //        resulted_on = resultDate,
-            //        variant_type = Enums.PatientVariantType.SNP
-            //    };
-            //    SetVariantValues(patientVariant, feature.Attributes.FirstOrDefault(x => x.Name == "Variant_seq").Value, feature.Attributes.FirstOrDefault(x => x.Name == "Genotype").Value);
-            //    patientVariants.Add(patientVariant);
+                featureEntities.Add(AddFeatureAttribute("Source", patient.id, file.id, gvfEntity, feature.Source));
+                featureEntities.Add(AddFeatureAttribute("Type", patient.id, file.id, gvfEntity, feature.Type));
+                featureEntities.Add(AddFeatureAttribute("Start position", patient.id, file.id, gvfEntity, feature.StartPosition.ToString()));
+                featureEntities.Add(AddFeatureAttribute("End position", patient.id, file.id, gvfEntity, feature.EndPosition.ToString()));
+                featureEntities.Add(AddFeatureAttribute("Score", patient.id, file.id, gvfEntity, feature.Score));
+                featureEntities.Add(AddFeatureAttribute("Strand", patient.id, file.id, gvfEntity, feature.Strand));
+                featureEntities.Add(AddFeatureAttribute("Phase", patient.id, file.id, gvfEntity, feature.Phase));
 
-            //    var attributeList = new List<patient_variant_information>();
-            //    attributeList.Add(AddFeatureInformation("GVF:Score", feature.Score));
-            //    attributeList.Add(AddFeatureInformation("GVF:Strand", feature.Strand));
-            //    attributeList.Add(AddFeatureInformation("GVF:Phase", feature.Phase));
+                foreach (var attr in feature.Attributes.Where(x => x.Name != "ID" && x.Name != "Variant_seq").ToArray())
+                {
 
-            //    foreach (var attribute in feature.Attributes.Where(x => x.Name != "Variant_seq" && x.Name != "Reference_seq" && x.Name != "ID"))
-            //    {
-            //        attributeList.Add(AddFeatureInformation(string.Format("GVF:{0}", attribute.Name), attribute.Value));
-            //    }
-            //    featureInformationList.Add(patientVariant, attributeList);
-            //}
+                    featureEntities.Add(AddFeatureAttribute(attr.Name, patient.id, file.id, gvfEntity, attr.Value));
+                }
 
-            //// Save the collection to get its ID
-            //var collection = patientRepo.AddCollection(patient, file);
+                var variantEntity = new result_entities()
+                {
+                    attribute_id = EntityRepository.GetAttribute(feature.Attributes.FirstOrDefault(x => x.Name == "ID").Value, "dbSNP", null, null).id,
+                    patient_id = patient.id,
+                    result_file_id = file.id,
+                    parent = gvfEntity
+                };
+                featureEntities.Add(variantEntity);
 
-            //// Save the collection-level pragma data
-            //collectionInformationList.ForEach(x => x.item_id = collection.id);
-            //variantRepo.AddPatientVariantInformationList(collectionInformationList);
-            //variantRepo.AddPatientVariants(patientVariants);
+                var alleles = feature.Attributes.FirstOrDefault(x => x.Name == "Variant_seq").Value.Split(new[] { ',' });
+                foreach (var allele in alleles)
+                {
+                    featureEntities.Add(AddFeatureAttribute("Allele", patient.id, file.id, variantEntity, allele));
+                }
+            }
 
-            //// Save the individual attributes associated with each feature.
-            //// Must be done after the patient variants are written to DB (above), since we
-            //// rely on the ID being set.
-            //foreach (var pair in featureInformationList)
-            //{
-            //    foreach (var attribute in pair.Value)
-            //    {
-            //        attribute.item_id = pair.Key.id;
-            //    }
-            //    variantRepo.AddPatientVariantInformationList(pair.Value);
-            //}
+            entityRepo.AddGVF(rootEntity, pragmaEntities, featureEntities);
+        }
 
-            //variantRepo.AddPatientVariantsToCollection(collection, patientVariants);
+        private result_entities AddFeatureAttribute(string attributeCode, int patientId, int fileId, result_entities parent, string value)
+        {
+            var attribute = EntityRepository.GetAttribute(attributeCode, "GVF", attributeCode, null);
+            var entity = new result_entities()
+            {
+                attribute_id = attribute.id,
+                patient_id = patientId,
+                result_file_id = fileId,
+                parent = parent,
+            };
+            SetEntityValue(entity, attribute, value);
+            return entity;
+        }
+
+        private void SetEntityValue(result_entities entity, attribute attribute, string value)
+        {
+            switch (attribute.value_type)
+            {
+                case "float":
+                    entity.value_float = float.Parse(value);
+                    break;
+                case "int":
+                    entity.value_int = int.Parse(value);
+                    break;
+                case "short_text":
+                    entity.value_short_text = value;
+                    break;
+                case "text":
+                    entity.value_text = value;
+                    break;
+                case "date_time":
+                    entity.value_date_time = DateTime.Parse(value);
+                    break;
+                default:
+                    entity.value_text = value;
+                    break;
+            }
         }
     }
 }
