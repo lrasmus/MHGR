@@ -64,6 +64,45 @@ namespace MHGR.EAVModels
             return results.ToArray();
         }
 
+        public result_entities[] AddStarVariants(patient patient, result_files resultFile, DateTime resultedOn, List<StarVariantResult> stars)
+        {
+            var results = new List<result_entities>();
+            foreach (var star in stars)
+            {
+                result_entities rootEntity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(star.Gene, "HGNC", star.Gene, star.Gene).id,
+                    value_short_text = star.Result
+                };
+
+                result_entities resultedOnEntity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(null, null, "Resulted on", null).id,
+                    parent = rootEntity,
+                    value_date_time = resultedOn
+                };
+
+                result_entities resultTypeEntity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(null, null, "Gene result type", null).id,
+                    parent = rootEntity,
+                    value_short_text = "Star allele"
+                };
+
+                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity, resultTypeEntity });
+                results.Add(rootEntity);
+            }
+
+            entities.SaveChanges();
+            return results.ToArray();
+        }
+
         /// <summary>
         /// One known limitation - we assume that the three search types (code, name or value) are
         /// unique, but this is rarely the case.  This should be expanded so that it attempts to
