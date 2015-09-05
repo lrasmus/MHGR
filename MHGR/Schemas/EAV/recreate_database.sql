@@ -15,9 +15,9 @@ GO
 CREATE DATABASE [mhgr_eav]
  CONTAINMENT = NONE
  ON  PRIMARY 
-( NAME = N'mhgr_eav', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.BASHERDB\MSSQL\DATA\mhgr_eav.mdf' , SIZE = 25600KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )
+( NAME = N'mhgr_eav', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.BASHERDB\MSSQL\DATA\mhgr_eav.mdf' , SIZE = 76800KB , MAXSIZE = UNLIMITED, FILEGROWTH = 1024KB )
  LOG ON 
-( NAME = N'mhgr_eav_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.BASHERDB\MSSQL\DATA\mhgr_eav_log.ldf' , SIZE = 10240KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)
+( NAME = N'mhgr_eav_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL12.BASHERDB\MSSQL\DATA\mhgr_eav_log.ldf' , SIZE = 20480KB , MAXSIZE = 2048GB , FILEGROWTH = 10%)
 GO
 
 ALTER DATABASE [mhgr_eav] SET COMPATIBILITY_LEVEL = 120
