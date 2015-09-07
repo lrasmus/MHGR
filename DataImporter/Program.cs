@@ -11,7 +11,7 @@ namespace DataImporter
     {
         static void Main(string[] args)
         {
-            //HybridLoader.Load();
+            HybridLoader.Load();
             EAVLoader.Load();
         }
     }

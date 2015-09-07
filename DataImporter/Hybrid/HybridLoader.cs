@@ -32,7 +32,7 @@ namespace MHGR.DataImporter.Hybrid
             snpLoader.LoadReference(ConfigurationManager.AppSettings["SNPReferenceData"]);
             snpLoader.LoadData(ConfigurationManager.AppSettings["SNPData"]);
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
-            if (!snpLoader.ConsistencyChecks(1000, 18, 8, 32, 5000, 32000, 6000, 37000, 0, 0))
+            if (!snpLoader.ConsistencyChecks(1000, 18, 9, 32, 5000, 32000, 6000, 37000, 0, 0))
             {
                 Console.WriteLine("FAILED - Results of the SNP load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -47,7 +47,7 @@ namespace MHGR.DataImporter.Hybrid
             var starVariantLoader = new StarVariantLoader();
             starVariantLoader.LoadData(ConfigurationManager.AppSettings["StarVariantData"]);
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
-            if (!starVariantLoader.ConsistencyChecks(1000, 18, 8, 53, 5000, 35000, 7000, 40000, 0, 0))
+            if (!starVariantLoader.ConsistencyChecks(1000, 18, 9, 53, 5000, 35000, 7000, 40000, 0, 0))
             {
                 Console.WriteLine("FAILED - Results of the star variant load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -68,7 +68,7 @@ namespace MHGR.DataImporter.Hybrid
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
 
             var gvfChecker = new GVFLoader();
-            if (!gvfChecker.ConsistencyChecks(1000, 18, 8, 53, 5000, 67000, 8000, 72000, 187000, 23))
+            if (!gvfChecker.ConsistencyChecks(1000, 18, 9, 53, 5000, 67000, 8000, 72000, 199000, 25))
             {
                 Console.WriteLine("FAILED - Results of the GVF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");
@@ -90,7 +90,7 @@ namespace MHGR.DataImporter.Hybrid
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
 
             var vcfChecker = new VCFLoader();
-            if (!vcfChecker.ConsistencyChecks(1000, 18, 8, 54, 5000, 99000, 9000, 104000, 426000, 36))
+            if (!vcfChecker.ConsistencyChecks(1000, 18, 9, 54, 5000, 99000, 9000, 104000, 438000, 38))
             {
                 Console.WriteLine("FAILED - Results of the VCF load do not match internal consistency checks.");
                 Console.WriteLine("         Please resolve issues before proceeding with other data loads.");

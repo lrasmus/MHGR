@@ -35,6 +35,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <None Include="Data\EAVAttributes\EAVAttributes.xlsx" />
     <None Include="Data\Patients\PatientList.xlsx" />
     <None Include="Data\Phenotype\PhenotypeList.xlsx" />
     <None Include="packages.config" />
@@ -44,7 +45,7 @@
     <Folder Include="Data\SNP\" />
     <Folder Include="Data\StarVariant\" />
     <Folder Include="Data\VCF\" />
-    <Folder Include="Schemas\Relational\" />
+    <Folder Include="Queries\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -58,8 +59,11 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Data\Experiments\DataLoad.txt" />
     <Content Include="Schemas\EAV\descructive_create.sql" />
+    <Content Include="Schemas\EAV\recreate_database.sql" />
     <Content Include="Schemas\Hybrid\destructive_create.sql" />
+    <Content Include="Schemas\Hybrid\recreate_database.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
