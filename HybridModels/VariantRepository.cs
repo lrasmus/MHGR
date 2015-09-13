@@ -35,11 +35,20 @@ namespace MHGR.HybridModels
             return existingGene;
         }
 
+        public variant GetGeneVariant(int geneId, string externalId, string externalSource, int? startPosition, int? endPosition)
+        {
+            return (from v in entities.variants
+                    where v.gene_id == geneId
+                        && v.external_source == externalSource && v.external_id == externalId
+                        && v.start_position == startPosition && v.end_position == endPosition
+                    select v).FirstOrDefault();
+        }
+
         public variant GetVariant(string externalId, string externalSource, int? startPosition, int? endPosition)
         {
             return (from v in entities.variants
                     where v.external_source == externalSource && v.external_id == externalId
-                    && v.start_position == startPosition && v.end_position == endPosition
+                        && v.start_position == startPosition && v.end_position == endPosition
                     select v).FirstOrDefault();
         }
 
@@ -51,7 +60,7 @@ namespace MHGR.HybridModels
                 existingGene = AddGene(geneSymbol, geneSymbol, null, null, chromosome);
             }
 
-            var existingVariant = GetVariant(externalId, externalSource, startPosition, endPosition);
+            var existingVariant = GetGeneVariant(existingGene.id, externalId, externalSource, startPosition, endPosition);
             if (existingVariant == null)
             {
                 existingVariant = new variant()
@@ -120,7 +129,7 @@ namespace MHGR.HybridModels
                 var member = new patient_result_members()
                 {
                     collection_id = collection.id,
-                    member_id = variant.reference_id,
+                    member_id = variant.id,
                     member_type = Enums.ResultMemberType.Variant,
                 };
                 entities.patient_result_members.Add(member);
@@ -163,7 +172,7 @@ namespace MHGR.HybridModels
                 var member = new patient_result_members()
                 {
                     collection_id = collection.id,
-                    member_id = variant.reference_id,
+                    member_id = variant.id,
                     member_type = Enums.ResultMemberType.Variant,
                 };
                 entities.patient_result_members.Add(member);
@@ -192,7 +201,7 @@ namespace MHGR.HybridModels
                 var member = new patient_result_members()
                 {
                     collection_id = collection.id,
-                    member_id = variant.reference_id,
+                    member_id = variant.id,
                     member_type = Enums.ResultMemberType.Variant,
                 };
                 entities.patient_result_members.Add(member);
