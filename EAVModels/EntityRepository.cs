@@ -60,7 +60,7 @@ namespace MHGR.EAVModels
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "Allele", null).id,
+                    attribute_id = GetAttribute(null, null, "SNP allele", null).id,
                     parent = rootEntity,
                     value_short_text = snp.Genotype[0].ToString()
                 };
@@ -69,7 +69,7 @@ namespace MHGR.EAVModels
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "Allele", null).id,
+                    attribute_id = GetAttribute(null, null, "SNP allele", null).id,
                     parent = rootEntity,
                     value_short_text = snp.Genotype[1].ToString()
                 };
@@ -113,7 +113,7 @@ namespace MHGR.EAVModels
                     {
                         patient_id = patient.id,
                         result_file_id = resultFile.id,
-                        attribute_id = GetAttribute(null, null, "Allele", null).id,
+                        attribute_id = GetAttribute(null, null, "Star allele", null).id,
                         parent = rootEntity,
                         value_short_text = value
                     };

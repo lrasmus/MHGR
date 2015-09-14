@@ -185,7 +185,7 @@ namespace MHGR.DataImporter.EAV
                 var alleles = feature.Attributes.FirstOrDefault(x => x.Name == "Variant_seq").Value.Split(new[] { ',' });
                 foreach (var allele in alleles)
                 {
-                    featureEntities.Add(AddFeatureAttribute("Allele", patient.id, file.id, variantEntity, allele));
+                    featureEntities.Add(AddFeatureAttribute("SNP allele", patient.id, file.id, variantEntity, allele));
                 }
             }
 

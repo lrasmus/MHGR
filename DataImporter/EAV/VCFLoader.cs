@@ -25,7 +25,7 @@ namespace MHGR.DataImporter.EAV
                     {
                         patient_id = patientId,
                         result_file_id = fileId,
-                        attribute_id = EntityRepository.GetAttribute(null, null, "Allele", null).id,
+                        attribute_id = EntityRepository.GetAttribute(null, null, "SNP allele", null).id,
                         parent = parent,
                         value_short_text = allele.DisplayString
                     });
