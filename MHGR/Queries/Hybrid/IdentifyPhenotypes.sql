@@ -39,7 +39,6 @@ SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
 	INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
 	INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id
 	INNER JOIN [dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
-  --ORDER BY pt.external_id
 
 UNION ALL
 
@@ -59,7 +58,7 @@ SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
 	INNER JOIN [dbo].[variants] v ON v.gene_id = 2  -- CYP2C9
 	INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 AND prm.collection_id = prc.id
 	INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id AND pv.reference_id = v.id
-ORDER BY pt.external_id, pv.resulted_on DESC
+ORDER BY pt.external_id, pv.resulted_on DESC, [value]
 
 
 
@@ -99,7 +98,7 @@ SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
 				ELSE 'Unknown'
 			END
 		ELSE 'Unknown'
-	END,
+	END AS [value],
 	pv1.resulted_on
 	FROM [dbo].[patient_result_collections] prc
 	INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
