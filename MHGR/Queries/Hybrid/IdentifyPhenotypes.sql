@@ -284,4 +284,62 @@ FROM
 		PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2]) ) AS pvt
 ) v
 INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
+
+UNION ALL
+
+SELECT patient_id, pt.external_source, pt.first_name, pt.last_name,
+	'Hypertrophic Cardiomyopathy' AS [phenotype],
+	CASE
+		WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
+		WHEN CHARINDEX('Variant', [rs121964855]) > 0 OR CHARINDEX('Variant', [rs121964856]) > 0 OR CHARINDEX('Variant', [rs121964857]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 2' 
+		WHEN CHARINDEX('Variant', [rs28934269]) > 0 OR CHARINDEX('Variant', [rs104894504]) > 0 OR CHARINDEX('Variant', [rs28934270]) > 0 OR CHARINDEX('Variant', [rs727504290]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 3' 
+		WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
+		ELSE 'No genetic risk found'
+	END AS [value]
+FROM
+(
+	SELECT patient_id, external_source,
+		[1] AS [rs121913626],	-- MYH7
+		[2] AS [rs3218713],
+		[3] AS [rs3218714],
+		[4] AS [rs121964855],	-- TNNT2
+		[5] AS [rs121964856],
+		[6] AS [rs121964857],
+		[7] AS [rs28934269],	-- TPM1
+		[8] AS [rs104894504],
+		[9] AS [rs28934270],
+		[10] AS [rs727504290],
+		[11] AS [rs375882485],	-- MYBPC3
+		[12] AS [rs397515937],
+		[13] AS [rs397515963],
+		[14] AS [rs397516074],
+		[15] AS [rs397516083]
+	FROM
+	(
+		SELECT pt.external_id AS [patient_id], pt.external_source,
+			CASE
+				WHEN pv.value1 = pv.value2 THEN
+					CASE
+						WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			ROW_NUMBER() OVER (PARTITION BY pt.external_id ORDER BY v.gene_id, v.external_id) AS RowNum
+		FROM [dbo].[patient_result_collections] prc
+			INNER JOIN [dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
+			INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
+				AND prm.collection_id = prc.id
+			INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
+			INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
+				AND pv.id = prm.member_id
+			INNER JOIN [dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+		) a
+		PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
 ORDER BY patient_id, phenotype
