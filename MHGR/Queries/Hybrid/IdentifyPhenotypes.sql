@@ -111,15 +111,6 @@ GO
 --ORDER BY pt.external_id
 
 
---	SELECT patient_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
---	FROM 
---	(
---		SELECT gene.id AS [gene_entity_id], allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.id, allele.attribute_id ORDER BY gene.attribute_id, allele.id) AS RowNum
---		FROM [mhgr_eav].[dbo].[result_entities] gene
---			INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id AND allele.attribute_id = 129
---		WHERE gene.attribute_id = 31 -- CYP2C19
---	) a
---	PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
 
 -- Convert CYP2C19 SNPs to phenotype
 SELECT patient_id, pt.external_source, pt.first_name, pt.last_name,
@@ -193,6 +184,7 @@ FROM
 		END AS [zygosity],
 		ROW_NUMBER() OVER (PARTITION BY pt.external_id ORDER BY v.gene_id, v.external_id) AS RowNum
 	FROM [dbo].[patient_result_collections] prc
+		INNER JOIN [dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
 		INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
 			AND prm.collection_id = prc.id
 		INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
@@ -203,4 +195,46 @@ FROM
 	PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10]) ) AS pvt
 ) v
 INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
-ORDER BY patient_id
+
+UNION ALL
+
+SELECT patient_id, pt.external_source, pt.first_name, pt.last_name,
+	'Warfarin metabolism' AS [phenotype],
+	CASE
+		WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
+		ELSE 'Decreased'
+	END AS [value]
+FROM
+(
+	SELECT patient_id, external_source,
+		[1] AS rs1057910,
+		[2] AS rs1799853
+	FROM
+	(
+		SELECT pt.external_id AS [patient_id], pt.external_source,
+			CASE
+				WHEN pv.value1 = pv.value2 THEN
+					CASE
+						WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			ROW_NUMBER() OVER (PARTITION BY pt.external_id ORDER BY v.gene_id, v.external_id) AS RowNum
+		FROM [dbo].[patient_result_collections] prc
+			INNER JOIN [dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
+			INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
+				AND prm.collection_id = prc.id
+			INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
+			INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
+				AND pv.id = prm.member_id
+			INNER JOIN [dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
+		) a
+		PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
+ORDER BY patient_id, phenotype
