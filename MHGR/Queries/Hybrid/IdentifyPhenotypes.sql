@@ -237,4 +237,51 @@ FROM
 		PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2]) ) AS pvt
 ) v
 INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
+
+UNION ALL
+
+SELECT patient_id, pt.external_source, pt.first_name, pt.last_name,
+	'Familial Thrombophilia' AS [phenotype],
+	CASE
+		WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
+		WHEN [rs6025] = 'Heterozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Heterozygous Factor V Leiden mutation'
+		WHEN [rs1799963] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs6025]) = 0 THEN 'Homozygous prothrombin G20210A mutation'
+		WHEN [rs1799963] = 'Heterozygous_Variant' AND CHARINDEX('Variant', [rs6025]) = 0 THEN 'Heterozygous prothrombin G20210A mutation'
+		WHEN CHARINDEX('Variant', [rs6025]) > 0 AND CHARINDEX('Variant', [rs1799963]) > 0 THEN 'Double heterozygous for prothrombin G20210A mutation and Factor V Leiden mutation'
+		WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
+		ELSE 'Unknown'
+	END AS [value]
+FROM
+(
+	SELECT patient_id, external_source,
+		[1] AS [rs6025],	-- F5
+		[2] AS [rs1799963]	-- F2
+	FROM
+	(
+		SELECT pt.external_id AS [patient_id], pt.external_source,
+			CASE
+				WHEN pv.value1 = pv.value2 THEN
+					CASE
+						WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			ROW_NUMBER() OVER (PARTITION BY pt.external_id ORDER BY v.gene_id, v.external_id) AS RowNum
+		FROM [dbo].[patient_result_collections] prc
+			INNER JOIN [dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
+			INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
+				AND prm.collection_id = prc.id
+			INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
+			INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
+				AND pv.id = prm.member_id
+			INNER JOIN [dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F2 and F5
+		) a
+		PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
 ORDER BY patient_id, phenotype
