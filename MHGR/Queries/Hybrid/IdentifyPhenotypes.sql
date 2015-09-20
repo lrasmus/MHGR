@@ -122,41 +122,85 @@ GO
 --	PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
 
 -- Convert CYP2C19 SNPs to phenotype
-
-SELECT patient_id, external_source,
-[1] AS [rs12248560],	-- *17
-[2] AS [rs17884712],	-- *9
-[3] AS [rs28399504],	-- *4
-[4] AS [rs41291556],	-- *8
-[5] AS [rs4244285],		-- *2
-[6] AS [rs4986893],		-- *3
-[7] AS [rs56337013],	-- *5
-[8] AS [rs6413438],		-- *10
-[9] AS [rs72558184],	-- *6
-[10] AS [rs72558186]	-- *7
-FROM
-(
-SELECT pt.external_id AS [patient_id], pt.external_source,
+SELECT patient_id, pt.external_source, pt.first_name, pt.last_name,
+	'Clopidogrel metabolism' AS [phenotype],
 	CASE
-		WHEN pv.value1 = pv.value2 THEN
-			CASE
-				WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
-				ELSE 'Homozygous_Normal'
-			END
-		ELSE
-			CASE
-				WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Heterozygous_Variant'
-				ELSE 'Heterozygous_Normal'
-			END 
-	END AS [zygosity],
-	ROW_NUMBER() OVER (PARTITION BY pt.external_id ORDER BY v.gene_id, v.external_id) AS RowNum
-FROM [dbo].[patient_result_collections] prc
-	INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
-		AND prm.collection_id = prc.id
-	INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
-	INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
-		AND pv.id = prm.member_id
-	INNER JOIN [dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
-) a
-PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10]) ) AS pvt
+		WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
+			AND CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+			AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0
+			AND CHARINDEX('Variant', [rs72558186]) = 0
+		THEN 'Ultrarapid metabolizer'
+		WHEN ([rs12248560] = 'Heterozygous_Variant' OR [rs12248560] = 'Homozygous_Normal')
+			AND (
+				([rs28399504] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs41291556] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs4244285] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs4986893] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs56337013] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs72558184] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs72558186] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0)
+			)
+		THEN 'Intermediate metabolizer'
+		WHEN
+			(CHARINDEX('Variant', [rs12248560]) = 0 AND CHARINDEX('Variant', [rs17884712]) = 0 AND CHARINDEX('Variant', [rs28399504]) = 0 AND 
+			CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0 AND 
+			CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs6413438]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND 
+			CHARINDEX('Variant', [rs72558186]) = 0)
+		THEN 'Extensive metabolizer'
+		ELSE 'Poor metabolizer'
+	END AS [value]
+FROM 
+(
+	SELECT patient_id, external_source,
+	[1] AS [rs12248560],	-- *17
+	[2] AS [rs17884712],	-- *9
+	[3] AS [rs28399504],	-- *4
+	[4] AS [rs41291556],	-- *8
+	[5] AS [rs4244285],		-- *2
+	[6] AS [rs4986893],		-- *3
+	[7] AS [rs56337013],	-- *5
+	[8] AS [rs6413438],		-- *10
+	[9] AS [rs72558184],	-- *6
+	[10] AS [rs72558186]	-- *7
+	FROM
+	(
+	SELECT pt.external_id AS [patient_id], pt.external_source,
+		CASE
+			WHEN pv.value1 = pv.value2 THEN
+				CASE
+					WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
+					ELSE 'Homozygous_Normal'
+				END
+			ELSE
+				CASE
+					WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+					ELSE 'Heterozygous_Normal'
+				END 
+		END AS [zygosity],
+		ROW_NUMBER() OVER (PARTITION BY pt.external_id ORDER BY v.gene_id, v.external_id) AS RowNum
+	FROM [dbo].[patient_result_collections] prc
+		INNER JOIN [dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
+			AND prm.collection_id = prc.id
+		INNER JOIN [dbo].[patients] pt ON pt.id = prc.patient_id
+		INNER JOIN [dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
+			AND pv.id = prm.member_id
+		INNER JOIN [dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
+	) a
+	PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.external_id = v.patient_id AND pt.external_source = v.external_source
 ORDER BY patient_id
