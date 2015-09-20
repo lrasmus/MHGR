@@ -35,10 +35,10 @@ namespace MHGR.HybridModels
             return existingGene;
         }
 
-        public variant GetGeneVariant(int geneId, string externalId, string externalSource, int? startPosition, int? endPosition)
+        public variant GetGeneVariant(int? geneId, string externalId, string externalSource, int? startPosition, int? endPosition)
         {
             return (from v in entities.variants
-                    where v.gene_id == geneId
+                    where (geneId.HasValue ? (v.gene_id == geneId) : true)
                         && v.external_source == externalSource && v.external_id == externalId
                         && v.start_position == startPosition && v.end_position == endPosition
                     select v).FirstOrDefault();
@@ -55,12 +55,18 @@ namespace MHGR.HybridModels
         public variant AddVariant(string geneSymbol, string externalId, string externalSource, string chromosome, int? startPosition, int? endPosition, string referenceGenome, string referenceBases)
         {
             gene existingGene = null;
+            int? geneId = null;
             if (geneSymbol != null)
             {
                 existingGene = AddGene(geneSymbol, geneSymbol, null, null, chromosome);
             }
 
-            var existingVariant = GetGeneVariant(existingGene.id, externalId, externalSource, startPosition, endPosition);
+            if (existingGene != null)
+            {
+                geneId = existingGene.id;
+            }
+
+            var existingVariant = GetGeneVariant(geneId, externalId, externalSource, startPosition, endPosition);
             if (existingVariant == null)
             {
                 existingVariant = new variant()
