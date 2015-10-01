@@ -118,7 +118,6 @@ namespace MHGR.DataImporter.EAV
             while (vcfParser.MoveNext())
             {
                 var current = vcfParser.Current;
-                var attribute = EntityRepository.GetAttribute(current.ID, "dbSNP", null, null);
                 result_entities variantEntity = new result_entities()
                 {
                     attribute_id = EntityRepository.GetAttribute(null, null, "Variant Call Format variant", null).id,
@@ -127,7 +126,17 @@ namespace MHGR.DataImporter.EAV
                     parent = rootEntity
                 };
                 variantEntities.Add(variantEntity);
-                SetVariantValues(current, patient.id, file.id, variantEntity, variantEntities);
+
+                result_entities snpEntity = new result_entities()
+                {
+                    attribute_id = EntityRepository.GetAttribute(current.ID, "dbSNP", null, null).id,
+                    result_file_id = file.id,
+                    patient_id = patient.id,
+                    parent = variantEntity
+                };
+                variantEntities.Add(snpEntity);
+
+                SetVariantValues(current, patient.id, file.id, snpEntity, variantEntities);
 
                 variantEntities.Add(CreateEntityAttribute("Chromosome", patient.id, file.id, variantEntity, current.Chr));
                 variantEntities.Add(CreateEntityAttribute("Start position", patient.id, file.id, variantEntity, current.Start.ToString()));
