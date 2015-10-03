@@ -155,6 +155,420 @@ ORDER BY external_id, [value]
 
 -- 3: Identify phenotypes that are resulted as SNPs
 
+-- Convert CYP2C19 SNPs to phenotype
+SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+	'Clopidogrel metabolism' AS [phenotype],
+	CASE
+		WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
+			AND CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+			AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0
+			AND CHARINDEX('Variant', [rs72558186]) = 0
+		THEN 'Ultrarapid metabolizer'
+		WHEN ([rs12248560] = 'Heterozygous_Variant' OR [rs12248560] = 'Homozygous_Normal')
+			AND (
+				([rs28399504] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs41291556] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs4244285] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs4986893] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs56337013] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs72558184] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558186]) = 0)
+				OR ([rs72558186] = 'Heterozygous_Variant' AND 
+					CHARINDEX('Variant', [rs28399504]) = 0 AND CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0
+					AND CHARINDEX('Variant', [rs4986893]) = 0 AND CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0)
+			)
+		THEN 'Intermediate metabolizer'
+		WHEN
+			(CHARINDEX('Variant', [rs12248560]) = 0 AND CHARINDEX('Variant', [rs17884712]) = 0 AND CHARINDEX('Variant', [rs28399504]) = 0 AND 
+			CHARINDEX('Variant', [rs41291556]) = 0 AND CHARINDEX('Variant', [rs4244285]) = 0 AND CHARINDEX('Variant', [rs4986893]) = 0 AND 
+			CHARINDEX('Variant', [rs56337013]) = 0 AND CHARINDEX('Variant', [rs6413438]) = 0 AND CHARINDEX('Variant', [rs72558184]) = 0 AND 
+			CHARINDEX('Variant', [rs72558186]) = 0)
+		THEN 'Extensive metabolizer'
+		ELSE 'Poor metabolizer'
+	END AS [value],
+	[resulted_on]
+FROM 
+(
+	SELECT patient_id,
+		[40] AS [rs12248560],
+		[41] AS [rs28399504],
+		[42] AS [rs41291556],
+		[43] AS [rs72558184],
+		[44] AS [rs4986893],
+		[45] AS [rs4244285],
+		[46] AS [rs72558186],
+		[47] AS [rs56337013],
+		[48] AS [rs17884712],
+		[49] AS [rs6413438],
+		[resulted_on]
+	FROM
+	(
+		SELECT patient_id,
+			snp_id,
+			CASE
+				WHEN v.value1 = v.value2 THEN
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			[resulted_on]
+		FROM
+			(
+				SELECT id,
+				patient_id,
+				snp_id,
+				[1] AS value1,
+				COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
+				[3] AS reference_bases,
+				[4] AS [resulted_on]
+			FROM
+			(
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+					4 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+					AND res_dt.attribute_id = 72 -- Resulted on
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5
+					AND ar.attribute2_id = 31      -- CYP2C19
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+					3 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+					AND refs.attribute_id = 115 -- Reference bases
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id = 31      -- CYP2C19
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				-- Grab SNP results which have no parent ID, and child alleles.
+				-- Limit this to just SNPs that are under CYP2C19
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id = 31      -- CYP2C19
+				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+					AND alleles.attribute_id = 128 -- SNP allele
+				WHERE snps.parent_id IS NULL
+			) a
+			PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
+		) v
+	) snps
+	PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+
+UNION ALL
+
+-- Convert CYP2C9 SNPs to phenotype
+SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+	'Warfarin metabolism' AS [phenotype],
+	CASE
+		WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
+		ELSE 'Decreased'
+	END AS [value],
+	[resulted_on]
+FROM 
+(
+	SELECT patient_id,
+		[50] AS rs1057910,
+		[51] AS rs1799853,
+		[resulted_on]
+	FROM
+	(
+		SELECT patient_id,
+			snp_id,
+			CASE
+				WHEN v.value1 = v.value2 THEN
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			[resulted_on]
+		FROM
+			(
+				SELECT id,
+				patient_id,
+				snp_id,
+				[1] AS value1,
+				COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
+				[3] AS reference_bases,
+				[4] AS resulted_on
+			FROM
+			(
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+					4 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+					AND res_dt.attribute_id = 72 -- Resulted on
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5
+					AND ar.attribute2_id = 32      -- CYP2C9
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+					3 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+					AND refs.attribute_id = 115 -- Reference bases
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id = 32      -- CYP2C9
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				-- Grab SNP results which have no parent ID, and child alleles.
+				-- Limit this to just SNPs that are under CYP2C19
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id = 32      -- CYP2C9
+				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+					AND alleles.attribute_id = 128 -- SNP allele
+				WHERE snps.parent_id IS NULL
+			) a
+			PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
+		) v
+	) snps
+	PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+
+UNION ALL
+
+SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+	'Familial Thrombophilia' AS [phenotype],
+	CASE
+		WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
+		WHEN [rs6025] = 'Heterozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Heterozygous Factor V Leiden mutation'
+		WHEN [rs1799963] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs6025]) = 0 THEN 'Homozygous prothrombin G20210A mutation'
+		WHEN [rs1799963] = 'Heterozygous_Variant' AND CHARINDEX('Variant', [rs6025]) = 0 THEN 'Heterozygous prothrombin G20210A mutation'
+		WHEN CHARINDEX('Variant', [rs6025]) > 0 AND CHARINDEX('Variant', [rs1799963]) > 0 THEN 'Double heterozygous for prothrombin G20210A mutation and Factor V Leiden mutation'
+		WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
+		ELSE 'Unknown'
+	END AS [value],
+	[resulted_on]
+FROM 
+(
+	SELECT patient_id,
+		[55] AS [rs6025],		-- F5
+		[56] AS [rs1799963],	-- F2
+		[resulted_on]
+	FROM
+	(
+		SELECT patient_id,
+			snp_id,
+			CASE
+				WHEN v.value1 = v.value2 THEN
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			[resulted_on]
+		FROM
+			(
+				SELECT id,
+				patient_id,
+				snp_id,
+				[1] AS value1,
+				COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
+				[3] AS reference_bases,
+				[4] AS resulted_on
+			FROM
+			(
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+					4 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+					AND res_dt.attribute_id = 72 -- Resulted on
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5
+					AND ar.attribute2_id IN (34, 35)      -- F2, F5
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+					3 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+					AND refs.attribute_id = 115 -- Reference bases
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id IN (34, 35)      -- F2, F5
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				-- Grab SNP results which have no parent ID, and child alleles.
+				-- Limit this to just SNPs that are under CYP2C19
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id IN (34, 35)      -- F2, F5
+				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+					AND alleles.attribute_id = 128 -- SNP allele
+				WHERE snps.parent_id IS NULL
+			) a
+			PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
+		) v
+	) snps
+	PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+
+UNION ALL
+
+SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+	'Hypertrophic Cardiomyopathy' AS [phenotype],
+	CASE
+		WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
+		WHEN CHARINDEX('Variant', [rs121964855]) > 0 OR CHARINDEX('Variant', [rs121964856]) > 0 OR CHARINDEX('Variant', [rs121964857]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 2' 
+		WHEN CHARINDEX('Variant', [rs28934269]) > 0 OR CHARINDEX('Variant', [rs104894504]) > 0 OR CHARINDEX('Variant', [rs28934270]) > 0 OR CHARINDEX('Variant', [rs727504290]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 3' 
+		WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
+		ELSE 'No genetic risk found'
+	END AS [value],
+	[resulted_on]
+FROM 
+(
+	SELECT patient_id,
+		[57] AS [rs121913626],
+		[58] AS [rs3218713],
+		[59] AS [rs3218714],
+		[60] AS [rs121964855],
+		[61] AS [rs121964856],
+		[62] AS [rs121964857],
+		[63] AS [rs28934269],
+		[64] AS [rs28934270],
+		[65] AS [rs727504290],
+		[66] AS [rs104894504],
+		[67] AS [rs375882485],
+		[68] AS [rs397516083],
+		[69] AS [rs397515937],
+		[70] AS [rs397516074],
+		[71] AS [rs397515963],
+		[resulted_on]
+	FROM
+	(
+		SELECT patient_id,
+			snp_id,
+			CASE
+				WHEN v.value1 = v.value2 THEN
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Homozygous_Variant'
+						ELSE 'Homozygous_Normal'
+					END
+				ELSE
+					CASE
+						WHEN v.value1 != v.reference_bases OR v.value2 != v.reference_bases THEN 'Heterozygous_Variant'
+						ELSE 'Heterozygous_Normal'
+					END 
+			END AS [zygosity],
+			[resulted_on]
+		FROM
+			(
+				SELECT id,
+				patient_id,
+				snp_id,
+				[1] AS value1,
+				COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
+				[3] AS reference_bases,
+				[4] AS resulted_on
+			FROM
+			(
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+					4 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+					AND res_dt.attribute_id = 72 -- Resulted on
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5
+					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+					3 AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+					AND refs.attribute_id = 115 -- Reference bases
+				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
+				WHERE snps.parent_id IS NULL
+
+				UNION ALL
+
+				-- Grab SNP results which have no parent ID, and child alleles.
+				-- Limit this to just SNPs that are under CYP2C19
+				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
+				FROM dbo.result_entities snps
+				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+					AND ar.relationship_id = 5     -- Variant of gene
+					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
+				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+					AND alleles.attribute_id = 128 -- SNP allele
+				WHERE snps.parent_id IS NULL
+			) a
+			PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
+		) v
+	) snps
+	PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
+) v
+INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+ORDER BY pt.external_id, phenotype
+
+
+
+
+
+
 
 -- 4: Identify phenotypes that are resulted as GVFs
 
