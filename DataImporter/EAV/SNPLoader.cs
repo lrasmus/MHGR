@@ -12,6 +12,18 @@ namespace MHGR.DataImporter.EAV
     public class SNPLoader : BaseLoader
     {
         public const char Delimiter = '\t';
+        private Dictionary<string, string> referenceBases = new Dictionary<string, string>();
+
+        public void LoadReference(string filePath)
+        {
+            string[] data = File.ReadAllLines(filePath);
+            var entityRepo = new EntityRepository();
+            foreach (var dataLine in data.Skip(1))
+            {
+                var fields = dataLine.Split(Delimiter);
+                referenceBases.Add(fields[5], fields[7]);
+            }
+        }
 
         public override void LoadData(string filePath)
         {
@@ -34,7 +46,8 @@ namespace MHGR.DataImporter.EAV
                         RSID = fields[fieldIndex],
                         Chromosome = fields[fieldIndex + 1],
                         Position = int.Parse(fields[fieldIndex + 2]),
-                        Genotype = fields[fieldIndex + 3]
+                        Genotype = fields[fieldIndex + 3],
+                        ReferenceBase = referenceBases[fields[fieldIndex]]
                     };
                     snps.Add(snp);
                 }

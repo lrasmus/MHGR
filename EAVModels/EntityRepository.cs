@@ -56,6 +56,15 @@ namespace MHGR.EAVModels
                     value_date_time = resultedOn
                 };
 
+                result_entities referenceBaseEntity = new result_entities()
+                {
+                    patient_id = patient.id,
+                    result_file_id = resultFile.id,
+                    attribute_id = GetAttribute(null, null, "Reference base", null).id,
+                    parent = rootEntity,
+                    value_short_text = snp.ReferenceBase
+                };
+
                 result_entities allele1Entity = new result_entities()
                 {
                     patient_id = patient.id,
@@ -74,7 +83,7 @@ namespace MHGR.EAVModels
                     value_short_text = snp.Genotype[1].ToString()
                 };
 
-                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity, allele1Entity, allele2Entity });
+                entities.result_entities.AddRange(new[] { rootEntity, resultedOnEntity, referenceBaseEntity, allele1Entity, allele2Entity });
                 results.Add(rootEntity);
             }
 

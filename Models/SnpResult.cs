@@ -12,5 +12,6 @@ namespace MHGR.Models
         public string Chromosome;
         public int Position;
         public string Genotype;
+        public string ReferenceBase;
     }
 }

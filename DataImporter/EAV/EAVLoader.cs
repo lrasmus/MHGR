@@ -30,6 +30,7 @@ namespace MHGR.DataImporter.EAV
 
             timer = DateTime.Now;
             var snpLoader = new SNPLoader();
+            snpLoader.LoadReference(ConfigurationManager.AppSettings["SNPReferenceData"]);
             snpLoader.LoadData(ConfigurationManager.AppSettings["SNPData"]);
             Console.WriteLine(string.Format("Load took {0} seconds", (DateTime.Now - timer).TotalSeconds));
             if (!snpLoader.ConsistencyChecks(1000, 138000, 6000, 3))
