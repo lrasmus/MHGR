@@ -37,6 +37,9 @@ namespace MHGR.EAVModels
         public result_entities[] AddSnps(result_files resultFile, patient patient, DateTime? resultedOn, List<SnpResult> snps)
         {
             var results = new List<result_entities>();
+            var snpAlleleAttributeId = GetAttribute(null, null, "SNP allele", null).id;
+            var referenceBaseAttributeId = GetAttribute(null, null, "Reference base", null).id;
+            var resultedOnAttributeId = GetAttribute(null, null, "Resulted on", null).id;
             foreach (var snp in snps)
             {
                 var entityParts = new List<result_entities>();
@@ -51,7 +54,7 @@ namespace MHGR.EAVModels
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "Resulted on", null).id,
+                    attribute_id = resultedOnAttributeId,
                     parent = rootEntity,
                     value_date_time = resultedOn
                 };
@@ -60,7 +63,7 @@ namespace MHGR.EAVModels
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "Reference base", null).id,
+                    attribute_id = referenceBaseAttributeId,
                     parent = rootEntity,
                     value_short_text = snp.ReferenceBase
                 };
@@ -69,7 +72,7 @@ namespace MHGR.EAVModels
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "SNP allele", null).id,
+                    attribute_id = snpAlleleAttributeId,
                     parent = rootEntity,
                     value_short_text = snp.Genotype[0].ToString()
                 };
@@ -78,7 +81,7 @@ namespace MHGR.EAVModels
                 {
                     patient_id = patient.id,
                     result_file_id = resultFile.id,
-                    attribute_id = GetAttribute(null, null, "SNP allele", null).id,
+                    attribute_id = snpAlleleAttributeId,
                     parent = rootEntity,
                     value_short_text = snp.Genotype[1].ToString()
                 };
@@ -168,16 +171,23 @@ namespace MHGR.EAVModels
         public static attribute GetAttribute(string code, string codeSystem, string name, string value)
         {
             var attrRepo = new AttributeRepository();
-            var attribute = attrRepo.FindUniqueAttributeByCode(code, codeSystem);
-            if (attribute != null)
+            attribute attribute = null;
+            if (!string.IsNullOrEmpty(code) || !string.IsNullOrEmpty(codeSystem))
             {
-                return attribute;
+                attribute = attrRepo.FindUniqueAttributeByCode(code, codeSystem);
+                if (attribute != null)
+                {
+                    return attribute;
+                }
             }
 
-            attribute = attrRepo.FindUniqueAttributeByName(value);
-            if (attribute != null)
+            if (!string.IsNullOrEmpty(value))
             {
-                return attribute;
+                attribute = attrRepo.FindUniqueAttributeByName(value);
+                if (attribute != null)
+                {
+                    return attribute;
+                }
             }
 
             return attrRepo.FindUniqueAttributeByName(name);
