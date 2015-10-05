@@ -1,5 +1,5 @@
-USE [mhgr_eav]
-GO
+--USE [mhgr_eav]
+--GO
 
 -- Return patient information and phenotype.  If there are multiple results, show them all.
 
@@ -8,22 +8,22 @@ WITH phenotypes ([id], [name], [parent_id], [parent_name])
 AS
 (
 SELECT a.id, a.name, NULL AS [parent_id], CONVERT(nvarchar, N'Phenotype') AS [parent_name]
-	FROM [dbo].[attributes] a
-	INNER JOIN [dbo].[attribute_relationships] ar ON a.id = ar.attribute1_id AND ar.attribute2_id = 7 AND ar.relationship_id = 2
+	FROM [mhgr_eav].[dbo].[attributes] a
+	INNER JOIN [mhgr_eav].[dbo].[attribute_relationships] ar ON a.id = ar.attribute1_id AND ar.attribute2_id = 7 AND ar.relationship_id = 2
 
 UNION ALL
 
 SELECT a.id, a.name, p.id AS [parent_id], CONVERT(nvarchar, p.name) AS [parent_name]
-	FROM [dbo].[attributes] a
-	INNER JOIN [dbo].[attribute_relationships] ar ON a.id = ar.attribute1_id AND ar.relationship_id = 2
+	FROM [mhgr_eav].[dbo].[attributes] a
+	INNER JOIN [mhgr_eav].[dbo].[attribute_relationships] ar ON a.id = ar.attribute1_id AND ar.relationship_id = 2
 	INNER JOIN phenotypes p ON ar.attribute2_id = p.id
 )
 
-SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, p.parent_name as [phenotype], p.name as [value], ro.value_date_time AS [resulted_on]
+SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, p.parent_name as [phenotype], p.name as [value], CONVERT(VARCHAR, ro.value_date_time, 101) AS [resulted_on]
 FROM phenotypes p
-	INNER JOIN [dbo].[result_entities] re ON re.attribute_id = p.id
-	INNER JOIN [dbo].[patients] pt on pt.id = re.patient_id
-	INNER JOIN [dbo].[result_entities] ro ON ro.attribute_id = 72 AND ro.parent_id = re.id
+	INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.attribute_id = p.id
+	INNER JOIN [mhgr_eav].[dbo].[patients] pt on pt.id = re.patient_id
+	INNER JOIN [mhgr_eav].[dbo].[result_entities] ro ON ro.attribute_id = 72 AND ro.parent_id = re.id
 	ORDER BY external_id, resulted_on DESC
 
 
@@ -46,7 +46,7 @@ SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, 'Clopido
 		WHEN pvt.value1 IN ('2', '3', '4', '5', '6', '7', '8') AND pvt.value2 IN ('2', '3', '4', '5', '6', '7', '8') THEN 'Poor metabolizer'
 		ELSE 'Unknown'
 	END AS [value],
-	re.value_date_time AS [resulted_on]
+	CONVERT(VARCHAR, re.value_date_time, 101) AS [resulted_on]
 FROM 
 (
 	SELECT patient_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
@@ -59,7 +59,7 @@ FROM
 	) a
 	PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
 ) pvt
-INNER JOIN [dbo].[patients] pt ON pt.id = pvt.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
 INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.parent_id = gene_entity_id AND re.attribute_id = 72 -- Resulted on
 
 UNION ALL
@@ -74,7 +74,7 @@ SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
 		WHEN pvt.value1 IN ('1', '2', '3') AND pvt.value2 IN ('1', '2', '3') THEN 'Decreased'
 		ELSE 'Unknown'
 	END AS [value],
-	re.value_date_time AS [resulted_on]
+	CONVERT(VARCHAR, re.value_date_time, 101) AS [resulted_on]
 FROM 
 (
 	SELECT patient_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
@@ -87,9 +87,9 @@ FROM
 	) a
 	PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
 ) pvt
-INNER JOIN [dbo].[patients] pt ON pt.id = pvt.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
 INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.parent_id = gene_entity_id AND re.attribute_id = 72 -- Resulted on
-ORDER BY pt.external_id, re.value_date_time DESC, [value]
+ORDER BY pt.external_id, CONVERT(VARCHAR, re.value_date_time, 101) DESC, [value]
 
 
 -- Translate the CYP2C9 and VKORC1 stars for warfarin metabolism and generate dosing range recommendation
@@ -155,7 +155,7 @@ FROM
 		) a
 		PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4], [5]) ) AS pvt
 	) pvt
-	INNER JOIN [dbo].[patients] pt ON pt.id = pvt.patient_id
+	INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
 ) AS a
 GROUP BY external_id, external_source, first_name, last_name, [phenotype], [value]
 ORDER BY external_id, [value]
@@ -251,10 +251,10 @@ FROM
 			(
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+				FROM [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
 					AND res_dt.attribute_id = 72 -- Resulted on
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5
 					AND ar.attribute2_id = 31      -- CYP2C19
 				WHERE snps.parent_id IS NULL
@@ -263,10 +263,10 @@ FROM
 
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+				FROM [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 31      -- CYP2C19
 				WHERE snps.parent_id IS NULL
@@ -277,11 +277,11 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 31      -- CYP2C19
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE snps.parent_id IS NULL
 			) a
@@ -290,7 +290,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -338,10 +338,10 @@ FROM
 			(
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
 					AND res_dt.attribute_id = 72 -- Resulted on
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5
 					AND ar.attribute2_id = 32      -- CYP2C9
 				WHERE snps.parent_id IS NULL
@@ -350,10 +350,10 @@ FROM
 
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 32      -- CYP2C9
 				WHERE snps.parent_id IS NULL
@@ -364,11 +364,11 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 32      -- CYP2C9
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE snps.parent_id IS NULL
 			) a
@@ -377,7 +377,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -429,10 +429,10 @@ FROM
 			(
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
 					AND res_dt.attribute_id = 72 -- Resulted on
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5
 					AND ar.attribute2_id IN (34, 35)      -- F2, F5
 				WHERE snps.parent_id IS NULL
@@ -441,10 +441,10 @@ FROM
 
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (34, 35)      -- F2, F5
 				WHERE snps.parent_id IS NULL
@@ -455,11 +455,11 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (34, 35)      -- F2, F5
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE snps.parent_id IS NULL
 			) a
@@ -468,7 +468,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -531,10 +531,10 @@ FROM
 			(
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = snps.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
 					AND res_dt.attribute_id = 72 -- Resulted on
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5
 					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
 				WHERE snps.parent_id IS NULL
@@ -543,10 +543,10 @@ FROM
 
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = snps.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
 				WHERE snps.parent_id IS NULL
@@ -557,11 +557,11 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities snps
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] snps
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE snps.parent_id IS NULL
 			) a
@@ -570,7 +570,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 ORDER BY pt.external_id, phenotype
 
 
@@ -668,25 +668,25 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities gvf ON gvf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
 					AND gvf.attribute_id = 74  -- GVF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = gvf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = gvf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
 					AND ar.attribute2_id = 31      -- CYP2C19
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 100 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 31      -- CYP2C19
 				WHERE features.attribute_id = 96   -- GVF Feature
@@ -697,12 +697,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 31      -- CYP2C19
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 96   -- GVF Feature
 			) a
@@ -711,7 +711,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -759,25 +759,25 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities gvf ON gvf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
 					AND gvf.attribute_id = 74  -- GVF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = gvf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = gvf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
 					AND ar.attribute2_id = 32      -- CYP2C9
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 100 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 32      -- CYP2C9
 				WHERE features.attribute_id = 96   -- GVF Feature
@@ -788,12 +788,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 32      -- CYP2C9
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 96   -- GVF Feature
 			) a
@@ -802,7 +802,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -854,25 +854,25 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities gvf ON gvf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
 					AND gvf.attribute_id = 74  -- GVF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = gvf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = gvf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
 					AND ar.attribute2_id IN (34, 35)      -- F2, F5
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 100 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (34, 35)      -- F2, F5
 				WHERE features.attribute_id = 96   -- GVF Feature
@@ -883,12 +883,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (34, 35)      -- F2, F5
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 96   -- GVF Feature
 			) a
@@ -897,7 +897,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -960,25 +960,25 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities gvf ON gvf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
 					AND gvf.attribute_id = 74  -- GVF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = gvf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = gvf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id AND ar.relationship_id = 5
 					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 100 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
 				WHERE features.attribute_id = 96   -- GVF Feature
@@ -989,12 +989,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)      -- MYH7, TNNT2, TPM1, MYBPC3
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 96   -- GVF Feature
 			) a
@@ -1003,7 +1003,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 ORDER BY pt.external_id, phenotype
 
 
@@ -1097,26 +1097,26 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities vcf ON vcf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
 					AND vcf.attribute_id = 103		-- VCF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = vcf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = vcf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5		-- Variant of gene
 					AND ar.attribute2_id = 31		-- CYP2C19
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 31      -- CYP2C19
 				WHERE features.attribute_id = 114   -- VCF Feature
@@ -1127,12 +1127,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 31      -- CYP2C19
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 114   -- VCF Feature
 			) a
@@ -1141,7 +1141,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -1189,26 +1189,26 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities vcf ON vcf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
 					AND vcf.attribute_id = 103		-- VCF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = vcf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = vcf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5		-- Variant of gene
 					AND ar.attribute2_id = 32		-- CYP2C9
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 32      -- CYP2C9
 				WHERE features.attribute_id = 114   -- VCF Feature
@@ -1219,12 +1219,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id = 32      -- CYP2C9
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 114   -- VCF Feature
 			) a
@@ -1233,7 +1233,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -1285,26 +1285,26 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities vcf ON vcf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
 					AND vcf.attribute_id = 103		-- VCF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = vcf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = vcf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5			-- Variant of gene
 					AND ar.attribute2_id IN (34, 35)    -- F2, F5
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				WHERE features.attribute_id = 114   -- VCF Feature
@@ -1315,12 +1315,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (34, 35)    -- F2, F5
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 114   -- VCF Feature
 			) a
@@ -1329,7 +1329,7 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
 UNION ALL
 
@@ -1392,26 +1392,26 @@ FROM
 			(
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					4 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities vcf ON vcf.id = features.parent_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
 					AND vcf.attribute_id = 103		-- VCF result
-				INNER JOIN dbo.result_entities res_dt ON res_dt.parent_id = vcf.id 
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = vcf.id 
 					AND res_dt.attribute_id = 72 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5		-- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)  -- MYH7, TNNT2, TPM1, MYBPC3
-				INNER JOIN dbo.patients p ON p.id = features.patient_id
+				INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
 
 				UNION ALL
 
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					3 AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities refs ON refs.parent_id = features.id 
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
 					AND refs.attribute_id = 115 -- Reference bases
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id
-				INNER JOIN dbo.attribute_relationships ar ON snps.attribute_id = ar.attribute1_id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)  -- MYH7, TNNT2, TPM1, MYBPC3
 				WHERE features.attribute_id = 114   -- VCF Feature
@@ -1422,12 +1422,12 @@ FROM
 				-- Limit this to just SNPs that are under CYP2C19
 				SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
-				FROM dbo.result_entities features
-				INNER JOIN dbo.result_entities snps ON snps.parent_id = features.id 
-				INNER JOIN dbo.attribute_relationships ar ON ar.attribute1_id = snps.attribute_id
+				FROM  [mhgr_eav].[dbo].[result_entities] features
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
+				INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
 					AND ar.relationship_id = 5     -- Variant of gene
 					AND ar.attribute2_id IN (36, 37, 38, 39)  -- MYH7, TNNT2, TPM1, MYBPC3
-				INNER JOIN dbo.result_entities alleles ON alleles.parent_id = snps.id
+				INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					AND alleles.attribute_id = 128 -- SNP allele
 				WHERE features.attribute_id = 114   -- VCF Feature
 			) a
@@ -1436,5 +1436,5 @@ FROM
 	) snps
 	PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
 ) v
-INNER JOIN [dbo].[patients] pt ON pt.id = v.patient_id
+INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 ORDER BY pt.external_id, phenotype
