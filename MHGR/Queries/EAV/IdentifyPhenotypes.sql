@@ -132,21 +132,30 @@ FROM
 				END
 			ELSE 'Unknown'
 		END AS [value],
-		re.value_date_time AS [resulted_on]
+		[resulted_on]
 	FROM 
 	(
-		SELECT patient_id, [1] AS [cyp2c9_value1], [2] AS [cyp2c9_value2], [3] AS [vkorc1_value1], [4] AS [vkorc1_value2]
+		SELECT patient_id, [1] AS [cyp2c9_value1], [2] AS [cyp2c9_value2], [3] AS [vkorc1_value1], [4] AS [vkorc1_value2], [5] AS [resulted_on]
 		FROM 
 		(
 			SELECT allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.patient_id ORDER BY gene.id, gene.attribute_id, allele.id) AS RowNum
 			FROM [mhgr_eav].[dbo].[result_entities] gene
-				INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id AND allele.attribute_id = 129
-			WHERE gene.attribute_id IN (32, 33) -- CYP2C9, VKORC1
+				INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
+					AND allele.attribute_id = 129	-- Star allele
+			WHERE gene.attribute_id IN (32, 33)		-- CYP2C9, VKORC1
+
+			UNION ALL
+
+			SELECT allele.patient_id, CONVERT(VARCHAR, MIN(allele.value_date_time), 101), 5 AS RowNum
+			FROM [mhgr_eav].[dbo].[result_entities] gene
+				INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
+					AND allele.attribute_id = 72	-- Resulted on
+			WHERE gene.attribute_id IN (32, 33)		-- CYP2C9, VKORC1
+			GROUP BY allele.patient_id
 		) a
-		PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
+		PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4], [5]) ) AS pvt
 	) pvt
 	INNER JOIN [dbo].[patients] pt ON pt.id = pvt.patient_id
-	INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.patient_id = pvt.patient_id AND re.attribute_id = 72 -- Resulted on
 ) AS a
 GROUP BY external_id, external_source, first_name, last_name, [phenotype], [value]
 ORDER BY external_id, [value]
