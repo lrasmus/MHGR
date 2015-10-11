@@ -1,8 +1,15 @@
 --USE [mhgr_hybrid]
 --GO
 
--- Return patient information and phenotype.  If there are multiple results, show them all.
+dbcc dropcleanbuffers;
+DBCC FREEPROCCACHE;
 
+SET STATISTICS TIME ON
+GO
+
+
+
+-- Return patient information and phenotype.  If there are multiple results, show them all.
 
 -- 1: Identify phenotypes that are resulted as phenotypes
 SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, p.name as [phenotype], p.value as [value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [resulted_on]
@@ -973,3 +980,7 @@ FROM
 ) v
 INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 ORDER BY external_source, external_id, phenotype
+
+
+SET STATISTICS TIME OFF
+GO

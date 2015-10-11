@@ -1,6 +1,13 @@
 --USE [mhgr_eav]
 --GO
 
+dbcc dropcleanbuffers;
+DBCC FREEPROCCACHE;
+
+SET STATISTICS TIME ON
+GO
+
+
 -- Return patient information and phenotype.  If there are multiple results, show them all.
 
 -- 1: Identify phenotypes that are resulted as phenotypes
@@ -1475,3 +1482,5 @@ FROM
 INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 ORDER BY pt.external_id, phenotype
 
+SET STATISTICS TIME OFF
+GO

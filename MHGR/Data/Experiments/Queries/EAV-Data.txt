@@ -1,0 +1,358 @@
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 703 ms, elapsed time = 724 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 187 ms,  elapsed time = 411 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 281 ms,  elapsed time = 382 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 235 ms,  elapsed time = 284 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1578 ms,  elapsed time = 1701 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3830 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3828 ms.
+--------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 688 ms, elapsed time = 730 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 187 ms,  elapsed time = 427 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 282 ms,  elapsed time = 372 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 234 ms,  elapsed time = 282 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1500 ms,  elapsed time = 1637 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3820 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3839 ms.
+-------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 750 ms, elapsed time = 752 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 171 ms,  elapsed time = 404 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 266 ms,  elapsed time = 369 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 234 ms,  elapsed time = 281 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1516 ms,  elapsed time = 1605 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3734 ms,  elapsed time = 3780 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3766 ms,  elapsed time = 3860 ms.
+-------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 703 ms, elapsed time = 725 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 187 ms,  elapsed time = 436 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 266 ms,  elapsed time = 355 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 250 ms,  elapsed time = 290 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1562 ms,  elapsed time = 1641 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3814 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3735 ms,  elapsed time = 3820 ms.
+-------------------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 703 ms, elapsed time = 719 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 219 ms,  elapsed time = 408 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 281 ms,  elapsed time = 372 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 234 ms,  elapsed time = 286 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1516 ms,  elapsed time = 1627 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3688 ms,  elapsed time = 3769 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3813 ms.
+-----------------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 703 ms, elapsed time = 712 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 203 ms,  elapsed time = 413 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 282 ms,  elapsed time = 371 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 234 ms,  elapsed time = 284 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1516 ms,  elapsed time = 1663 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3687 ms,  elapsed time = 3774 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3797 ms,  elapsed time = 3860 ms.
+-----------------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 735 ms, elapsed time = 738 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 218 ms,  elapsed time = 438 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 266 ms,  elapsed time = 366 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 250 ms,  elapsed time = 285 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1578 ms,  elapsed time = 1834 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3750 ms,  elapsed time = 3835 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3797 ms,  elapsed time = 3873 ms.
+-----------------------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 703 ms, elapsed time = 723 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 188 ms,  elapsed time = 418 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 265 ms,  elapsed time = 370 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 266 ms,  elapsed time = 283 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1453 ms,  elapsed time = 1616 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3703 ms,  elapsed time = 3778 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3781 ms,  elapsed time = 3847 ms.
+-----------------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 703 ms, elapsed time = 721 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 250 ms,  elapsed time = 417 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 265 ms,  elapsed time = 376 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 250 ms,  elapsed time = 287 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1547 ms,  elapsed time = 1631 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3688 ms,  elapsed time = 3776 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3765 ms,  elapsed time = 3799 ms.
+--------------------------------------------------
+
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+DBCC execution completed. If DBCC printed error messages, contact your system administrator.
+SQL Server parse and compile time: 
+   CPU time = 687 ms, elapsed time = 700 ms.
+
+(5000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 235 ms,  elapsed time = 422 ms.
+
+(2000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 265 ms,  elapsed time = 373 ms.
+
+(1000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 250 ms,  elapsed time = 282 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 1547 ms,  elapsed time = 1657 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3719 ms,  elapsed time = 3795 ms.
+
+(4000 row(s) affected)
+
+ SQL Server Execution Times:
+   CPU time = 3781 ms,  elapsed time = 3860 ms.
