@@ -1,0 +1,20 @@
+Load took 130.2506627 seconds
+Passed - Consistency checks passed for phenotype data load
+Load took 55.8791962 seconds
+Passed - Consistency checks passed for SNP data load
+Load took 16.7814636 seconds
+Passed - Consistency checks passed for star variant data load
+Load took 276.1816234 seconds
+Passed - Consistency checks passed for GVF data load
+Load took 323.9840652 seconds
+Passed - Consistency checks passed for VCF data load
+Load took 127.5423921 seconds
+Passed - Consistency checks passed for phenotype data load
+Load took 136.073465 seconds
+Passed - Consistency checks passed for SNP data load
+Load took 22.6721659 seconds
+Passed - Consistency checks passed for star variant data load
+Load took 568.3351402 seconds
+Passed - Consistency checks passed for GVF data load
+Load took 577.9016793 seconds
+Passed - Consistency checks passed for VCF data load

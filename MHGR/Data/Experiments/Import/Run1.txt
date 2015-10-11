@@ -1,23 +1,20 @@
-Hybrid
-Load took 126.6660762 seconds
+Load took 129.4460287 seconds
 Passed - Consistency checks passed for phenotype data load
-Load took 55.7328177 seconds
+Load took 56.7106834 seconds
 Passed - Consistency checks passed for SNP data load
-Load took 15.6043075 seconds
+Load took 17.3535691 seconds
 Passed - Consistency checks passed for star variant data load
-Load took 271.6220069 seconds
+Load took 280.0009623 seconds
 Passed - Consistency checks passed for GVF data load
-Load took 338.0855711 seconds
+Load took 314.1986843 seconds
 Passed - Consistency checks passed for VCF data load
-
-EAV
-Load took 134.1762578 seconds
+Load took 124.7279876 seconds
 Passed - Consistency checks passed for phenotype data load
-Load took 312.7476941 seconds
+Load took 137.2770703 seconds
 Passed - Consistency checks passed for SNP data load
-Load took 32.8317577 seconds
+Load took 24.7190629 seconds
 Passed - Consistency checks passed for star variant data load
-Load took 641.0048868 seconds
+Load took 594.0523367 seconds
 Passed - Consistency checks passed for GVF data load
-Load took 745.0378568 seconds
+Load took 602.2971555 seconds
 Passed - Consistency checks passed for VCF data load
