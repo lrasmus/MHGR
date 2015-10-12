@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridModels", "HybridModel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EAVModels", "EAVModels\EAVModels.csproj", "{A4A2DAC4-6B8F-4C7A-8AA5-7374FDF41B10}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Viewer", "Viewer\Viewer.csproj", "{75FDCC54-42B3-486A-8006-27B57CA00C25}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,6 +84,12 @@ Global
 		{A4A2DAC4-6B8F-4C7A-8AA5-7374FDF41B10}.Mono|Any CPU.Build.0 = Release|Any CPU
 		{A4A2DAC4-6B8F-4C7A-8AA5-7374FDF41B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4A2DAC4-6B8F-4C7A-8AA5-7374FDF41B10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75FDCC54-42B3-486A-8006-27B57CA00C25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75FDCC54-42B3-486A-8006-27B57CA00C25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75FDCC54-42B3-486A-8006-27B57CA00C25}.Mono|Any CPU.ActiveCfg = Release|Any CPU
+		{75FDCC54-42B3-486A-8006-27B57CA00C25}.Mono|Any CPU.Build.0 = Release|Any CPU
+		{75FDCC54-42B3-486A-8006-27B57CA00C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75FDCC54-42B3-486A-8006-27B57CA00C25}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

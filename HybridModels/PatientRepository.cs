@@ -1,4 +1,6 @@
 ﻿using MHGR.HybridModels;
+using MHGR.Models;
+using MHGR.Models.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MHGR.HybridModels
 {
-    public class PatientRepository
+    public class PatientRepository : IPatientRepository
     {
         private HybridEntities entities = new HybridEntities();
 
@@ -46,6 +48,19 @@ namespace MHGR.HybridModels
             entities.patient_result_collections.Add(collection);
             entities.SaveChanges();
             return collection;
+        }
+
+        public List<Models.Patient> Search(string search, int? limit)
+        {
+            var query = (from pat in entities.patients
+                         where pat.external_id.Contains(search) || pat.first_name.Contains(search) || pat.last_name.Contains(search)
+                         select new Patient() { FirstName = pat.first_name, LastName = pat.last_name, MRN = pat.external_id });
+            if (limit.HasValue)
+            {
+                return query.Take(limit.Value).ToList();
+            }
+
+            return query.ToList();
         }
     }
 }

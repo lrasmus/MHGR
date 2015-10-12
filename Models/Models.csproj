@@ -55,7 +55,9 @@
     <Compile Include="GVF\Feature.cs" />
     <Compile Include="GVF\Pragma.cs" />
     <Compile Include="GVF\Tag.cs" />
+    <Compile Include="Patient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\IPatientRepository.cs" />
     <Compile Include="SnpResult.cs" />
     <Compile Include="StarVariantResult.cs" />
   </ItemGroup>

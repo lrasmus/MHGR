@@ -1,0 +1,48 @@
+﻿@{
+    ViewBag.Title = "MHGR Patient Result Viewer";
+}
+
+<div class="row">
+    <div class="col-md-12" id="patientSearch">
+        <input class="typeahead" type="text" placeholder="Search by patient MRN or name" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12" id="patientDetails">
+        <div id="content"/>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        function onSelected($e, data) {
+            var $detailDiv = $('#patientDetails #content');
+            $.get('../Patient/Details/' + data.MRN, function (data) {
+                $detailDiv.replaceWith(data);
+            });
+        }
+
+        var patients = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: '../api/Patient/Search/%QUERY',
+                wildcard: '%QUERY'
+            }
+        });
+
+        $('#patientSearch .typeahead').typeahead({ highlight: true }, {
+            name: 'patients',
+            display: 'Display',
+            source: patients,
+            templates: {
+                empty: [
+                  '<div class="empty-message">',
+                    ' (No patients found with that name or MRN) ',
+                  '</div>'
+                ].join('\n')
+            }
+        }).on('typeahead:selected', onSelected);
+    });
+</script>
