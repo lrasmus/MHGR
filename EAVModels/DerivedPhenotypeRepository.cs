@@ -13,7 +13,7 @@ namespace MHGR.EAVModels
     {
         private EAVEntities entities = new EAVEntities();
 
-        public List<DerivedPhenotype> GetPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"WITH phenotypes ([id], [name], [parent_id], [parent_name])
@@ -40,12 +40,12 @@ namespace MHGR.EAVModels
 	            INNER JOIN [mhgr_eav].[dbo].[patients] pt on pt.id = re.patient_id
 	            INNER JOIN [mhgr_eav].[dbo].[result_entities] ro ON ro.attribute_id = 72	-- Resulted on
 		            AND ro.parent_id = re.id
-                WHERE pt.external_id=@p0
-	            ORDER BY external_id, ResultedOn DESC", mrn);
+                WHERE re.patient_id=@p0
+	            ORDER BY external_id, ResultedOn DESC", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetDosing(string mrn)
+        public List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT external_id, external_source, first_name, last_name, [phenotype], [value], MAX([resulted_on]) AS [ResultedOn]
@@ -97,7 +97,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 					            AND allele.attribute_id = 129	-- Star allele
 			            WHERE gene.attribute_id IN (32, 33)		-- CYP2C9, VKORC1
-
+                            AND gene.patient_id=@p0
 			            UNION ALL
 
 			            SELECT allele.patient_id, CONVERT(VARCHAR, MIN(allele.value_date_time), 101), 5 AS RowNum
@@ -105,19 +105,19 @@ namespace MHGR.EAVModels
 				            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 					            AND allele.attribute_id = 72	-- Resulted on
 			            WHERE gene.attribute_id IN (32, 33)		-- CYP2C9, VKORC1
+                            AND gene.patient_id=@p0
 			            GROUP BY allele.patient_id
 		            ) a
 		            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4], [5]) ) AS pvt
 	            ) pvt
 	            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
-                WHERE pt.external_id=@p0
             ) AS a
             GROUP BY external_id, external_source, first_name, last_name, [phenotype], [value]
-            ORDER BY external_source, external_id, [value]", mrn);
+            ORDER BY external_source, external_id, [value]", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetSNPPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetSNPPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
@@ -214,6 +214,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of a gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -227,6 +228,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -241,6 +243,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128 -- SNP allele
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -248,7 +251,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -304,6 +306,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -317,6 +320,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -331,6 +335,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128 -- SNP allele
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -338,7 +343,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -398,6 +402,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5			-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -411,6 +416,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5			-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -425,6 +431,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128		-- SNP allele
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -432,7 +439,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -503,6 +509,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)    -- MYH7, TNNT2, TPM1, MYBPC3
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -516,6 +523,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)	-- MYH7, TNNT2, TPM1, MYBPC3
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 
 				            UNION ALL
 
@@ -530,6 +538,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE snps.parent_id IS NULL
+                                AND snps.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -537,12 +546,11 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
-            ORDER BY pt.external_id, phenotype", mrn);
+            ORDER BY pt.external_id, phenotype", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetStarPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, 'Clopidogrel metabolism' AS [phenotype],
@@ -571,13 +579,13 @@ namespace MHGR.EAVModels
 			            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 				            AND allele.attribute_id = 129	-- Star allele
 		            WHERE gene.attribute_id = 31 -- CYP2C19
+                        AND gene.patient_id=@p0
 	            ) a
 	            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
             ) pvt
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
             INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.parent_id = gene_entity_id
 	            AND re.attribute_id = 72 -- Resulted on
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -602,18 +610,18 @@ namespace MHGR.EAVModels
 			            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 				            AND allele.attribute_id = 129	-- Star allele
 		            WHERE gene.attribute_id = 32			-- CYP2C9
+                        AND gene.patient_id=@p0
 	            ) a
 	            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
             ) pvt
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
             INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.parent_id = gene_entity_id
 	            AND re.attribute_id = 72 -- Resulted on
-            WHERE pt.external_id=@p0
-            ORDER BY pt.external_id, CONVERT(VARCHAR, re.value_date_time, 101) DESC, [value]", mrn);
+            ORDER BY pt.external_id, CONVERT(VARCHAR, re.value_date_time, 101) DESC, [value]", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetVCFPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
@@ -713,6 +721,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -727,6 +736,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
 				            WHERE features.attribute_id = 114	-- VCF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -742,6 +752,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 114   -- VCF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -749,7 +760,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -808,6 +818,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -822,6 +833,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
 				            WHERE features.attribute_id = 114   -- VCF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -837,6 +849,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 114   -- VCF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -844,7 +857,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -907,6 +919,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -921,6 +934,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				            WHERE features.attribute_id = 114   -- VCF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -936,6 +950,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 114	-- VCF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -943,7 +958,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -1017,6 +1031,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)  -- MYH7, TNNT2, TPM1, MYBPC3
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1031,6 +1046,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)  -- MYH7, TNNT2, TPM1, MYBPC3
 				            WHERE features.attribute_id = 114   -- VCF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1046,6 +1062,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 114	-- VCF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -1053,12 +1070,11 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
-            ORDER BY pt.external_id, phenotype", mrn);
+            ORDER BY pt.external_id, phenotype", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetGVFPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
@@ -1158,6 +1174,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1172,6 +1189,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
 				            WHERE features.attribute_id = 96	-- GVF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1187,6 +1205,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 96	-- GVF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -1194,7 +1213,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -1253,6 +1271,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1267,6 +1286,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
 				            WHERE features.attribute_id = 96	-- GVF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1282,6 +1302,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 96	-- GVF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -1289,7 +1310,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -1352,6 +1372,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5			-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1366,6 +1387,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5			-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
 				            WHERE features.attribute_id = 96		-- GVF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1381,6 +1403,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128		-- SNP allele
 				            WHERE features.attribute_id = 96		-- GVF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -1388,7 +1411,6 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -1462,6 +1484,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)	-- MYH7, TNNT2, TPM1, MYBPC3
 				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1476,6 +1499,7 @@ namespace MHGR.EAVModels
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)	-- MYH7, TNNT2, TPM1, MYBPC3
 				            WHERE features.attribute_id = 96	-- GVF Feature
+                                AND features.patient_id=@p0
 
 				            UNION ALL
 
@@ -1491,6 +1515,7 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] alleles ON alleles.parent_id = snps.id
 					            AND alleles.attribute_id = 128	-- SNP allele
 				            WHERE features.attribute_id = 96	-- GVF Feature
+                                AND features.patient_id=@p0
 			            ) a
 			            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4]) ) AS pvt
 		            ) v
@@ -1498,8 +1523,7 @@ namespace MHGR.EAVModels
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
             ) v
             INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
-            ORDER BY pt.external_id, phenotype", mrn);
+            ORDER BY pt.external_id, phenotype", id);
             return data.ToList();
         }
     }

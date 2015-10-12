@@ -8,11 +8,11 @@ namespace MHGR.Models.Repository
 {
     public interface IDerivedPhenotypeRepository
     {
-        List<DerivedPhenotype> GetPhenotypes(string mrn);
-        List<DerivedPhenotype> GetSNPPhenotypes(string mrn);
-        List<DerivedPhenotype> GetStarPhenotypes(string mrn);
-        List<DerivedPhenotype> GetVCFPhenotypes(string mrn);
-        List<DerivedPhenotype> GetGVFPhenotypes(string mrn);
-        List<DerivedPhenotype> GetDosing(string mrn);
+        List<DerivedPhenotype> GetPhenotypes(int id);
+        List<DerivedPhenotype> GetSNPPhenotypes(int id);
+        List<DerivedPhenotype> GetStarPhenotypes(int id);
+        List<DerivedPhenotype> GetVCFPhenotypes(int id);
+        List<DerivedPhenotype> GetGVFPhenotypes(int id);
+        List<DerivedPhenotype> GetDosing(int id);
     }
 }

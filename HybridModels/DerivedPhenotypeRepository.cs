@@ -13,7 +13,7 @@ namespace MHGR.HybridModels
     {
         private HybridEntities entities = new HybridEntities();
 
-        public List<DerivedPhenotype> GetPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName], p.name as [Phenotype], p.value as [Value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [ResultedOn]
@@ -22,12 +22,12 @@ namespace MHGR.HybridModels
 	            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = prc.patient_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_phenotypes] pp ON pp.id = prm.member_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[phenotypes] p ON p.id = pp.phenotype_id
-                WHERE pt.external_id=@p0
-	            ORDER BY pt.external_source, pt.external_id, resulted_on DESC", mrn);
+                WHERE prc.id=@p0
+	            ORDER BY pt.external_source, pt.external_id, resulted_on DESC", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetDosing(string mrn)
+        public List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
@@ -74,12 +74,12 @@ namespace MHGR.HybridModels
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v2 ON v2.gene_id = 3  -- VKORC1
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm2 ON prm2.member_type = 2 AND prm2.collection_id = prm1.collection_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv2 ON pv2.variant_type = 2 AND pv2.id = prm2.member_id AND pv2.reference_id = v2.id
-            WHERE pt.external_id=@p0
-            ORDER BY pt.external_source, pt.external_id", mrn);
+            WHERE prc.id=@p0
+            ORDER BY pt.external_source, pt.external_id", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetSNPPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetSNPPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
@@ -161,6 +161,7 @@ namespace MHGR.HybridModels
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
+                WHERE prc.patient_id=@p0
 
 	            UNION ALL
 
@@ -172,12 +173,12 @@ namespace MHGR.HybridModels
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
-	            GROUP BY prc.patient_id
+                WHERE prc.patient_id=@p0
+                GROUP BY prc.patient_id
 	            ) a
 	            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -217,6 +218,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -228,12 +230,12 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
-		            GROUP BY prc.patient_id
+	                WHERE prc.patient_id=@p0
+    	            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -278,6 +280,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
+                    WHERE prc.patient_id=@p0
 		            
                     UNION ALL
 
@@ -289,12 +292,12 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -350,6 +353,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -361,17 +365,17 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
-            ORDER BY external_source, external_id, phenotype", mrn);
+            ORDER BY external_source, external_id, phenotype", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetStarPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
@@ -396,7 +400,7 @@ namespace MHGR.HybridModels
 	            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = prc.patient_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
-                WHERE pt.external_id=@p0
+                WHERE prc.patient_id=@p0
 
             UNION ALL
 
@@ -414,12 +418,12 @@ namespace MHGR.HybridModels
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.gene_id = 2  -- CYP2C9
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 AND prm.collection_id = prc.id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id AND pv.reference_id = v.id
-                WHERE pt.external_id=@p0
-            ORDER BY pt.external_source, pt.external_id, CONVERT(VARCHAR, pv.resulted_on, 101) DESC, [value]", mrn);
+                WHERE prc.patient_id=@p0
+            ORDER BY pt.external_source, pt.external_id, CONVERT(VARCHAR, pv.resulted_on, 101) DESC, [value]", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetVCFPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
@@ -501,6 +505,7 @@ namespace MHGR.HybridModels
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
+                WHERE prc.patient_id=@p0
 
 	            UNION ALL
 
@@ -512,12 +517,12 @@ namespace MHGR.HybridModels
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1 -- CYP2C19
+                WHERE prc.patient_id=@p0
 	            GROUP BY prc.patient_id
 	            ) a
 	            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -557,6 +562,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -568,12 +574,12 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -618,6 +624,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -629,12 +636,12 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -690,6 +697,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -701,17 +709,17 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
-            ORDER BY external_source, external_id, phenotype", mrn);
+            ORDER BY external_source, external_id, phenotype", id);
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetGVFPhenotypes(string mrn)
+        public List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
@@ -793,6 +801,7 @@ namespace MHGR.HybridModels
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
+                WHERE prc.patient_id=@p0
 
 	            UNION ALL
 
@@ -804,12 +813,12 @@ namespace MHGR.HybridModels
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1 -- CYP2C19
+                WHERE prc.patient_id=@p0
 	            GROUP BY prc.patient_id
 	            ) a
 	            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -849,6 +858,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -860,12 +870,12 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -910,6 +920,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -921,12 +932,12 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
-		            GROUP BY prc.patient_id
+	                WHERE prc.patient_id=@p0
+    	            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
 
             UNION ALL
 
@@ -982,6 +993,7 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+                    WHERE prc.patient_id=@p0
 
 		            UNION ALL
 
@@ -993,13 +1005,13 @@ namespace MHGR.HybridModels
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 1  -- SNP variant type
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
+                    WHERE prc.patient_id=@p0
 		            GROUP BY prc.patient_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16]) ) AS pvt
             ) v
             INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            WHERE pt.external_id=@p0
-            ORDER BY external_source, external_id, phenotype", mrn);
+            ORDER BY external_source, external_id, phenotype", id);
             return data.ToList();
         }
     }

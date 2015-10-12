@@ -19,7 +19,7 @@
         var $typeahead = $('#patientSearch .typeahead');
         function onSelected($e, data) {
             var $detailDiv = $('#patientDetails #content');
-            $.get('../Patient/Details/' + data.MRN, function (data) {
+            $.get('../Patient/Details/' + data.ID, function (data) {
                 $detailDiv.html(data);
                 $typeahead.typeahead('val', '');
             });

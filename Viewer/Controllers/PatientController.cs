@@ -31,14 +31,15 @@ namespace Viewer.Controllers
         // GET: Patient/Details/5
         public PartialViewResult Details(string id)
         {
+            int patientId = int.Parse(id);
             var results = new PatientResults {
                 Patient = PatientRepository.Search(id, 1).FirstOrDefault(),
-                Phenotypes = PhenotypeRepository.GetPhenotypes(id),
-                StarPhenotypes = PhenotypeRepository.GetStarPhenotypes(id),
-                SNPPhenotypes = PhenotypeRepository.GetSNPPhenotypes(id),
-                VCFPhenotypes = PhenotypeRepository.GetVCFPhenotypes(id),
-                GVFPhenotypes = PhenotypeRepository.GetGVFPhenotypes(id),
-                Dosing = PhenotypeRepository.GetDosing(id)
+                Phenotypes = PhenotypeRepository.GetPhenotypes(patientId),
+                StarPhenotypes = PhenotypeRepository.GetStarPhenotypes(patientId),
+                SNPPhenotypes = PhenotypeRepository.GetSNPPhenotypes(patientId),
+                VCFPhenotypes = PhenotypeRepository.GetVCFPhenotypes(patientId),
+                GVFPhenotypes = PhenotypeRepository.GetGVFPhenotypes(patientId),
+                Dosing = PhenotypeRepository.GetDosing(patientId)
             };
             return PartialView("Details", results);
         }

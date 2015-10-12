@@ -39,7 +39,7 @@ namespace MHGR.EAVModels
         {
             var query = (from pat in entities.patients
                     where pat.external_id.Contains(search) || pat.first_name.Contains(search) || pat.last_name.Contains(search)
-                    select new Patient() { FirstName = pat.first_name, LastName = pat.last_name, MRN = pat.external_id });
+                    select new Patient() { ID = pat.id, FirstName = pat.first_name, LastName = pat.last_name, MRN = pat.external_id });
             if (limit.HasValue)
             {
                 return query.Take(limit.Value).ToList();
