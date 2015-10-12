@@ -40,7 +40,12 @@ namespace Viewer.Controllers
                 GVFPhenotypes = PhenotypeRepository.GetGVFPhenotypes(id),
                 Dosing = PhenotypeRepository.GetDosing(id)
             };
-            return PartialView("Results", results);
+            return PartialView("Details", results);
+        }
+
+        public PartialViewResult Result(string id)
+        {
+            return PartialView();
         }
     }
 }

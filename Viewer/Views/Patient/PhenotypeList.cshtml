@@ -3,7 +3,8 @@
     @foreach (var phenotype in Model)
     {
         <li class="phenotype">
-            @phenotype.Phenotype - @phenotype.Value <small>@phenotype.ResultedOn</small>
+            @Html.ActionLink(phenotype.Phenotype + " - " + phenotype.Value, "Result")
+             <small>@phenotype.ResultedOn</small>
         </li>
     }
 </ul>
