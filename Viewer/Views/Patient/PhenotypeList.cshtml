@@ -1,0 +1,9 @@
+﻿@model List<MHGR.Models.DerivedPhenotype>
+<ul class="phenotype-list">
+    @foreach (var phenotype in Model)
+    {
+        <li class="phenotype">
+            @phenotype.Phenotype - @phenotype.Value <small>@phenotype.ResultedOn</small>
+        </li>
+    }
+</ul>

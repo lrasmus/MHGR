@@ -95,3 +95,19 @@ textarea {
     font-size: 16px;
     font-weight: bold;
 }
+
+.phenotype-list {
+    padding-left: 0px;
+    list-style: none;
+}
+
+.phenotype {
+    padding-left: 2em;
+    text-indent: -2em;
+    padding-bottom: 3px;
+}
+
+.phenotype small {
+    padding-left: 10px;
+    color: #707070;
+}

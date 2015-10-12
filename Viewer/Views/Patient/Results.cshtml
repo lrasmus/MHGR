@@ -1,23 +1,26 @@
-﻿@model MHGR.Models.Patient
+﻿@model Viewer.Models.PatientResults
 
 <h1>
-    Results for @Html.DisplayTextFor(model => model.Display)
+    Results for @Html.DisplayTextFor(model => model.Patient.Display)
 </h1>
 
 <div class="row">
     <div class="col-md-4">
         <div class="result-panel">
             <div class="title">Phenotype</div>
+            @Html.Partial("PhenotypeList", Model.Phenotypes)
         </div>
     </div>
     <div class="col-md-4">
         <div class="result-panel">
             <div class="title">Star Variant</div>
+            @Html.Partial("PhenotypeList", Model.StarPhenotypes)
         </div>
     </div>
     <div class="col-md-4">
         <div class="result-panel">
             <div class="title">SNP</div>
+            @Html.Partial("PhenotypeList", Model.SNPPhenotypes)
         </div>
     </div>
 </div>
@@ -26,16 +29,19 @@
     <div class="col-md-4">
         <div class="result-panel">
             <div class="title">Variant Call Format (VCF)</div>
+            @Html.Partial("PhenotypeList", Model.VCFPhenotypes)
         </div>
     </div>
     <div class="col-md-4">
         <div class="result-panel">
             <div class="title">Genome Variation Format (GVF)</div>
+            @Html.Partial("PhenotypeList", Model.GVFPhenotypes)
         </div>
     </div>
     <div class="col-md-4">
         <div class="result-panel">
             <div class="title">Warfarin Dosing</div>
+            @Html.Partial("PhenotypeList", Model.Dosing)
         </div>
     </div>
 </div>

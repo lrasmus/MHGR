@@ -59,6 +59,7 @@
     <Compile Include="attribute_relationships.cs">
       <DependentUpon>EAVEntities.tt</DependentUpon>
     </Compile>
+    <Compile Include="DerivedPhenotypeRepository.cs" />
     <Compile Include="EAVEntities.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

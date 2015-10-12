@@ -20,7 +20,7 @@
         function onSelected($e, data) {
             var $detailDiv = $('#patientDetails #content');
             $.get('../Patient/Details/' + data.MRN, function (data) {
-                $detailDiv.replaceWith(data);
+                $detailDiv.html(data);
                 $typeahead.typeahead('val', '');
             });
         }

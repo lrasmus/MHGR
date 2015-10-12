@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DerivedPhenotypeRepository.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="FileRepository.cs" />
     <Compile Include="gene.cs">

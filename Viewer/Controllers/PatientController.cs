@@ -5,30 +5,42 @@ using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Viewer.Models;
 
 namespace Viewer.Controllers
 {
     public class PatientController : Controller
     {
-        private IPatientRepository Repository = null;
+        private IPatientRepository PatientRepository = null;
+        private IDerivedPhenotypeRepository PhenotypeRepository = null;
 
         public PatientController()
         {
             if (ConfigurationManager.AppSettings["Schema"].Equals("EAV", StringComparison.CurrentCultureIgnoreCase))
             {
-                Repository = new MHGR.EAVModels.PatientRepository();
+                PatientRepository = new MHGR.EAVModels.PatientRepository();
+                PhenotypeRepository = new MHGR.EAVModels.DerivedPhenotypeRepository();
             }
             else
             {
-                Repository = new MHGR.HybridModels.PatientRepository();
+                PatientRepository = new MHGR.HybridModels.PatientRepository();
+                PhenotypeRepository = new MHGR.HybridModels.DerivedPhenotypeRepository();
             }
         }
 
         // GET: Patient/Details/5
         public PartialViewResult Details(string id)
         {
-            var patient = Repository.Search(id, 1).FirstOrDefault();
-            return PartialView("Results", patient);
+            var results = new PatientResults {
+                Patient = PatientRepository.Search(id, 1).FirstOrDefault(),
+                Phenotypes = PhenotypeRepository.GetPhenotypes(id),
+                StarPhenotypes = PhenotypeRepository.GetStarPhenotypes(id),
+                SNPPhenotypes = PhenotypeRepository.GetSNPPhenotypes(id),
+                VCFPhenotypes = PhenotypeRepository.GetVCFPhenotypes(id),
+                GVFPhenotypes = PhenotypeRepository.GetGVFPhenotypes(id),
+                Dosing = PhenotypeRepository.GetDosing(id)
+            };
+            return PartialView("Results", results);
         }
     }
 }
