@@ -112,6 +112,10 @@ textarea {
     color: #707070;
 }
 
+.jumbotron {
+    text-align: center;
+}
+
 /* Solution for spinner provided by:
     http://stackoverflow.com/questions/1964839/jquery-please-wait-loading-animation?answertab=votes#tab-top
 */
