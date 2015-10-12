@@ -1,3 +1,41 @@
-﻿@model IEnumerable<MHGR.Models.Patient>
+﻿@model MHGR.Models.Patient
 
-It works!
+<h1>
+    Results for @Html.DisplayTextFor(model => model.Display)
+</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="result-panel">
+            <div class="title">Phenotype</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="result-panel">
+            <div class="title">Star Variant</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="result-panel">
+            <div class="title">SNP</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="result-panel">
+            <div class="title">Variant Call Format (VCF)</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="result-panel">
+            <div class="title">Genome Variation Format (GVF)</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="result-panel">
+            <div class="title">Warfarin Dosing</div>
+        </div>
+    </div>
+</div>

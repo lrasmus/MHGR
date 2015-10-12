@@ -16,10 +16,12 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
+        var $typeahead = $('#patientSearch .typeahead');
         function onSelected($e, data) {
             var $detailDiv = $('#patientDetails #content');
             $.get('../Patient/Details/' + data.MRN, function (data) {
                 $detailDiv.replaceWith(data);
+                $typeahead.typeahead('val', '');
             });
         }
 
@@ -32,7 +34,7 @@
             }
         });
 
-        $('#patientSearch .typeahead').typeahead({ highlight: true }, {
+        $typeahead.typeahead({ highlight: true }, {
             name: 'patients',
             display: 'Display',
             source: patients,
