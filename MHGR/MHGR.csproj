@@ -45,7 +45,6 @@
     <Folder Include="Data\SNP\" />
     <Folder Include="Data\StarVariant\" />
     <Folder Include="Data\VCF\" />
-    <Folder Include="Queries\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -60,6 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Data\Experiments\DataLoad.txt" />
+    <Content Include="Queries\EAV\IdentifyPhenotypes.sql" />
+    <Content Include="Queries\Hybrid\IdentifyPhenotypes.sql" />
     <Content Include="Schemas\EAV\descructive_create.sql" />
     <Content Include="Schemas\EAV\recreate_database.sql" />
     <Content Include="Schemas\Hybrid\destructive_create.sql" />
