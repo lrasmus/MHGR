@@ -9,5 +9,6 @@ namespace MHGR.Models.Repository
     public interface IPatientRepository
     {
         List<Patient> Search(string search, int? limit);
+        Patient Get(int id);
     }
 }

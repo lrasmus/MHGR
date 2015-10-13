@@ -33,7 +33,7 @@ namespace Viewer.Controllers
         {
             int patientId = int.Parse(id);
             var results = new PatientResults {
-                Patient = PatientRepository.Search(id, 1).FirstOrDefault(),
+                Patient = PatientRepository.Get(patientId),
                 Phenotypes = PhenotypeRepository.GetPhenotypes(patientId),
                 StarPhenotypes = PhenotypeRepository.GetStarPhenotypes(patientId),
                 SNPPhenotypes = PhenotypeRepository.GetSNPPhenotypes(patientId),

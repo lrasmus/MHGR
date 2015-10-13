@@ -62,5 +62,13 @@ namespace MHGR.HybridModels
 
             return query.ToList();
         }
+
+        public Models.Patient Get(int id)
+        {
+            var query = (from pat in entities.patients
+                         where pat.id == id
+                         select new Patient() { ID = pat.id, FirstName = pat.first_name, LastName = pat.last_name, MRN = pat.external_id });
+            return query.FirstOrDefault();
+        }
     }
 }
