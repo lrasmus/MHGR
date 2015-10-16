@@ -44,9 +44,11 @@ namespace Viewer.Controllers
             return PartialView("Details", results);
         }
 
-        public PartialViewResult Result(string id)
+        public PartialViewResult Result(string source, string id)
         {
-            return PartialView();
+            int resultFileId = int.Parse(id);
+            var resultDetails = new ResultDetails() { Phenotype = source, ResultFileId = resultFileId };
+            return PartialView(resultDetails);
         }
     }
 }

@@ -58,4 +58,15 @@
             }
         }).on('typeahead:selected', onSelected);
     });
+
+    function displayDetails(phenotype, fileId) {
+        var $dialogDiv = $('#detailsDialog');
+        $.get('../Patient/Result/' + phenotype + '/' + fileId, function (data) {
+            $dialogDiv.html(data);
+            $dialogDiv.dialog({
+                title: "Details",
+                modal: true
+            });
+        });
+    }
 </script>

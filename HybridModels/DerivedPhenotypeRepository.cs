@@ -16,21 +16,19 @@ namespace MHGR.HybridModels
         public List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName], p.name as [Phenotype], p.value as [Value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [ResultedOn]
+            @"SELECT prc.result_file_id AS [ResultFileId], p.name as [Phenotype], p.value as [Value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [ResultedOn]
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 1 AND prm.collection_id = prc.id
-	            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = prc.patient_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_phenotypes] pp ON pp.id = prm.member_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[phenotypes] p ON p.id = pp.phenotype_id
-                WHERE prc.id=@p0
-	            ORDER BY pt.external_source, pt.external_id, resulted_on DESC", id);
+                WHERE prc.patient_id=@p0", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            @"SELECT prc.result_file_id AS [ResultFileId],
 	            'Warfarin dosing range' AS [phenotype],
 	            CASE -- VKORC1 cases
 		            WHEN pv2.value1 = '1' AND pv2.value2 = '1' THEN
@@ -66,23 +64,21 @@ namespace MHGR.HybridModels
 		            ELSE 'Unknown'
 	            END AS [value],
 	            CONVERT(VARCHAR, pv1.resulted_on, 101) AS [ResultedOn]
-	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
-	            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = prc.patient_id
+	        FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v1 ON v1.gene_id = 2  -- CYP2C9
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm1 ON prm1.member_type = 2 AND prm1.collection_id = prc.id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv1 ON pv1.variant_type = 2 AND pv1.id = prm1.member_id AND pv1.reference_id = v1.id
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v2 ON v2.gene_id = 3  -- VKORC1
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm2 ON prm2.member_type = 2 AND prm2.collection_id = prm1.collection_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv2 ON pv2.variant_type = 2 AND pv2.id = prm2.member_id AND pv2.reference_id = v2.id
-            WHERE prc.id=@p0
-            ORDER BY pt.external_source, pt.external_id", id);
+            WHERE prc.patient_id=@p0", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetSNPPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
+            @"SELECT result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -127,6 +123,7 @@ namespace MHGR.HybridModels
             FROM 
             (
 	            SELECT patient_id,
+                result_file_id,
 	            [1] AS [rs12248560],	-- *17
 	            [2] AS [rs17884712],	-- *9
 	            [3] AS [rs28399504],	-- *4
@@ -141,6 +138,7 @@ namespace MHGR.HybridModels
 	            FROM
 	            (
 	            SELECT prc.patient_id,
+                    prc.result_file_id,
 		            CASE
 			            WHEN pv.value1 = pv.value2 THEN
 				            CASE
@@ -165,7 +163,7 @@ namespace MHGR.HybridModels
 
 	            UNION ALL
 
-	            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 11 AS RowNum
+	            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 11 AS RowNum
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 		            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -174,15 +172,14 @@ namespace MHGR.HybridModels
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
                 WHERE prc.patient_id=@p0
-                GROUP BY prc.patient_id
+                GROUP BY prc.patient_id, prc.result_file_id
 	            ) a
 	            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
+            SELECT result_file_id,
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -192,12 +189,14 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS rs1057910,
 		            [2] AS rs1799853,
 		            [3] AS [resulted_on]
 	            FROM
 	            (
 		            SELECT prc.patient_id,
+                        prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -222,7 +221,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -231,15 +230,14 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
 	                WHERE prc.patient_id=@p0
-    	            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
+            SELECT result_file_id,
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -254,13 +252,15 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
-		            [1] AS [rs6025],	-- F5
+                    result_file_id,
+                    [1] AS [rs6025],	-- F5
 		            [2] AS [rs1799963],	-- F2
 		            [3] AS [resulted_on]
 	            FROM
 	            (
 		            SELECT prc.patient_id,
-			            CASE
+			            prc.result_file_id,
+                        CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
 						            WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
@@ -284,7 +284,7 @@ namespace MHGR.HybridModels
 		            
                     UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -293,15 +293,14 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
+            SELECT result_file_id,
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -314,7 +313,8 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
-		            [1] AS [rs121913626],	-- MYH7
+                    result_file_id,
+                    [1] AS [rs121913626],	-- MYH7
 		            [2] AS [rs3218713],
 		            [3] AS [rs3218714],
 		            [4] AS [rs121964855],	-- TNNT2
@@ -333,7 +333,8 @@ namespace MHGR.HybridModels
 	            FROM
 	            (
 		            SELECT prc.patient_id,
-			            CASE
+                        prc.result_file_id,
+                        CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
 						            WHEN pv.value1 != v.reference_bases OR pv.value2 != v.reference_bases THEN 'Homozygous_Variant'
@@ -357,7 +358,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 16 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 16 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id NOT IN (4, 5)
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -366,19 +367,18 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            ORDER BY external_source, external_id, phenotype", id);
+            ORDER BY phenotype", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
+            @"SELECT prc.result_file_id,
 	            'Clopidogrel metabolism' AS [Phenotype],
 	            CASE
 		            -- Ultrarapid can be *1/*17, *17/*1, *17/*17
@@ -397,14 +397,13 @@ namespace MHGR.HybridModels
 	            CONVERT(VARCHAR, pv.resulted_on, 101) AS [ResultedOn]
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 AND prm.collection_id = prc.id
-	            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = prc.patient_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1  -- CYP2C19
                 WHERE prc.patient_id=@p0
 
             UNION ALL
 
-            SELECT pt.external_id AS [ExternalId], pt.external_source AS [ExternalSource], pt.first_name AS [FirstName], pt.last_name AS [LastName],
+            SELECT prc.result_file_id,
 	            'Warfarin metabolism' AS [Phenotype],
 	            CASE
 		            -- Everything except *1/*1 is Decreased, but check to make sure we don't have unknown values
@@ -414,19 +413,18 @@ namespace MHGR.HybridModels
 	            END AS [Value],
 	            CONVERT(VARCHAR, pv.resulted_on, 101) AS [ResultedOn]
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
-	            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = prc.patient_id
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.gene_id = 2  -- CYP2C9
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 AND prm.collection_id = prc.id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id AND pv.reference_id = v.id
                 WHERE prc.patient_id=@p0
-            ORDER BY pt.external_source, pt.external_id, CONVERT(VARCHAR, pv.resulted_on, 101) DESC, [value]", id);
+            ORDER BY CONVERT(VARCHAR, pv.resulted_on, 101) DESC, [value]", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            @"SELECT result_file_id,
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -471,6 +469,7 @@ namespace MHGR.HybridModels
             FROM 
             (
 	            SELECT patient_id,
+                result_file_id,
 	            [1] AS [rs12248560],	-- *17
 	            [2] AS [rs17884712],	-- *9
 	            [3] AS [rs28399504],	-- *4
@@ -485,6 +484,7 @@ namespace MHGR.HybridModels
 	            FROM
 	            (
 	            SELECT prc.patient_id,
+                    result_file_id,
 		            CASE
 			            WHEN pv.value1 = pv.value2 THEN
 				            CASE
@@ -509,7 +509,7 @@ namespace MHGR.HybridModels
 
 	            UNION ALL
 
-	            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 11 AS RowNum
+	            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 11 AS RowNum
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 		            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 5
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -518,15 +518,14 @@ namespace MHGR.HybridModels
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1 -- CYP2C19
                 WHERE prc.patient_id=@p0
-	            GROUP BY prc.patient_id
+                GROUP BY prc.patient_id, prc.result_file_id
 	            ) a
 	            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id,
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -536,12 +535,14 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS [rs1057910],
 		            [2] AS [rs1799853],
 		            [3] AS [resulted_on]
 	            FROM
 	            (
 		            SELECT prc.patient_id,
+                        prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -566,7 +567,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 5
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -575,15 +576,14 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_source, pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id,
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -598,12 +598,14 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS [rs6025],	-- F5
 		            [2] AS [rs1799963],	-- F2
 		            [3] AS [resulted_on]
 	            FROM
 	            (
 		            SELECT prc.patient_id,
+                        prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -628,7 +630,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 5
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -637,15 +639,14 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id,
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -658,6 +659,7 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS [rs121913626],	-- MYH7
 		            [2] AS [rs3218713],
 		            [3] AS [rs3218714],
@@ -677,6 +679,7 @@ namespace MHGR.HybridModels
 	            FROM
 	            (
 		            SELECT prc.patient_id,
+                        prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -701,7 +704,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 16 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 16 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 5
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -710,19 +713,18 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            ORDER BY external_source, external_id, phenotype", id);
+            ORDER BY result_file_id, phenotype", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            @"SELECT result_file_id,
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -767,6 +769,7 @@ namespace MHGR.HybridModels
             FROM 
             (
 	            SELECT patient_id,
+                result_file_id,
 	            [1] AS [rs12248560],	-- *17
 	            [2] AS [rs17884712],	-- *9
 	            [3] AS [rs28399504],	-- *4
@@ -780,7 +783,7 @@ namespace MHGR.HybridModels
 	            [11] As [resulted_on]
 	            FROM
 	            (
-	            SELECT prc.patient_id,
+	            SELECT prc.patient_id, prc.result_file_id,
 		            CASE
 			            WHEN pv.value1 = pv.value2 THEN
 				            CASE
@@ -805,7 +808,7 @@ namespace MHGR.HybridModels
 
 	            UNION ALL
 
-	            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 11 AS RowNum
+	            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 11 AS RowNum
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 		            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 4
 		            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -814,15 +817,14 @@ namespace MHGR.HybridModels
 			            AND pv.id = prm.member_id
 		            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 1 -- CYP2C19
                 WHERE prc.patient_id=@p0
-	            GROUP BY prc.patient_id
+                GROUP BY prc.patient_id, prc.result_file_id
 	            ) a
 	            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id,
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -832,12 +834,13 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS [rs1057910],
 		            [2] AS [rs1799853],
 		            [3] AS [resulted_on]
 	            FROM
 	            (
-		            SELECT prc.patient_id,
+		            SELECT prc.patient_id, prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -862,7 +865,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 4
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -871,15 +874,14 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id = 2  -- CYP2C9
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id,
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -894,12 +896,13 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS [rs6025],	-- F5
 		            [2] AS [rs1799963],	-- F2
 		            [3] AS [resulted_on]
 	            FROM
 	            (
-		            SELECT prc.patient_id,
+		            SELECT prc.patient_id, prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -924,7 +927,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 3 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 4
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -933,15 +936,14 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (4, 5)  -- F5 and F2
 	                WHERE prc.patient_id=@p0
-    	            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id,
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -954,6 +956,7 @@ namespace MHGR.HybridModels
             FROM
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [1] AS [rs121913626],	-- MYH7
 		            [2] AS [rs3218713],
 		            [3] AS [rs3218714],
@@ -973,6 +976,7 @@ namespace MHGR.HybridModels
 	            FROM
 	            (
 		            SELECT prc.patient_id,
+                        prc.result_file_id,
 			            CASE
 				            WHEN pv.value1 = pv.value2 THEN
 					            CASE
@@ -997,7 +1001,7 @@ namespace MHGR.HybridModels
 
 		            UNION ALL
 
-		            SELECT prc.patient_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 16 AS RowNum
+		            SELECT prc.patient_id, prc.result_file_id, CONVERT(VARCHAR, MAX(pv.resulted_on), 101), 16 AS RowNum
 		            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 			            INNER JOIN [mhgr_hybrid].[dbo].[result_files] rf ON rf.id = prc.result_file_id AND rf.result_source_id = 4
 			            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 -- Variant type
@@ -1006,12 +1010,11 @@ namespace MHGR.HybridModels
 				            AND pv.id = prm.member_id
 			            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.id = pv.reference_id AND v.gene_id IN (6, 7, 8, 9)  -- MYH7, TNNT2, TPM1, MYBPC3
                     WHERE prc.patient_id=@p0
-		            GROUP BY prc.patient_id
+                    GROUP BY prc.patient_id, prc.result_file_id
 		            ) a
 		            PIVOT ( MAX(zygosity) FOR RowNum IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_hybrid].[dbo].[patients] pt ON pt.id = v.patient_id
-            ORDER BY external_source, external_id, phenotype", id);
+            ORDER BY result_file_id, phenotype", id);
             return data.ToList();
         }
     }

@@ -142,6 +142,7 @@
     </Compile>
     <Compile Include="API\PatientController.cs" />
     <Compile Include="Models\PatientResults.cs" />
+    <Compile Include="Models\ResultDetails.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
