@@ -59,13 +59,15 @@
         }).on('typeahead:selected', onSelected);
     });
 
-    function displayDetails(phenotype, fileId) {
+    function displayDetails(source, fileId, phenotype) {
         var $dialogDiv = $('#detailsDialog');
-        $.get('../Patient/Result/' + phenotype + '/' + fileId, function (data) {
+        $.get('../Patient/Result/' + source + '/' + fileId + '/' + phenotype, function (data) {
             $dialogDiv.html(data);
             $dialogDiv.dialog({
-                title: "Details",
-                modal: true
+                title: phenotype,
+                modal: true,
+                width: 600,
+                height: 500
             });
         });
     }

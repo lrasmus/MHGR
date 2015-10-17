@@ -16,7 +16,7 @@ namespace MHGR.HybridModels
         public List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT prc.result_file_id AS [ResultFileId], p.name as [Phenotype], p.value as [Value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [ResultedOn]
+            @"SELECT prc.result_file_id AS [ResultFileId], p.name as [Phenotype], p.value as [Value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [ResultedOn], 'Phenotype' AS [Source]
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 1 AND prm.collection_id = prc.id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_phenotypes] pp ON pp.id = prm.member_id
@@ -63,7 +63,7 @@ namespace MHGR.HybridModels
 			            END
 		            ELSE 'Unknown'
 	            END AS [value],
-	            CONVERT(VARCHAR, pv1.resulted_on, 101) AS [ResultedOn]
+	            CONVERT(VARCHAR, pv1.resulted_on, 101) AS [ResultedOn], 'Star' AS [Source]
 	        FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v1 ON v1.gene_id = 2  -- CYP2C9
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm1 ON prm1.member_type = 2 AND prm1.collection_id = prc.id
@@ -119,7 +119,7 @@ namespace MHGR.HybridModels
 		            THEN 'Extensive metabolizer'
 		            ELSE 'Poor metabolizer'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -185,7 +185,7 @@ namespace MHGR.HybridModels
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
 		            ELSE 'Decreased'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -248,7 +248,7 @@ namespace MHGR.HybridModels
 		            WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -309,7 +309,7 @@ namespace MHGR.HybridModels
 		            WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
 		            ELSE 'No genetic risk found'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -394,7 +394,7 @@ namespace MHGR.HybridModels
 		            WHEN pv.value1 IN ('2', '3', '4', '5', '6', '7', '8') AND pv.value2 IN ('2', '3', '4', '5', '6', '7', '8') THEN 'Poor metabolizer'
 		            ELSE 'Unknown'
 	            END AS [Value],
-	            CONVERT(VARCHAR, pv.resulted_on, 101) AS [ResultedOn]
+	            CONVERT(VARCHAR, pv.resulted_on, 101) AS [ResultedOn], 'Star' AS [Source]
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 AND prm.collection_id = prc.id
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_variants] pv ON pv.variant_type = 2 AND pv.id = prm.member_id
@@ -411,7 +411,7 @@ namespace MHGR.HybridModels
 		            WHEN pv.value1 IN ('1', '2', '3') AND pv.value2 IN ('1', '2', '3') THEN 'Decreased'
 		            ELSE 'Unknown'
 	            END AS [Value],
-	            CONVERT(VARCHAR, pv.resulted_on, 101) AS [ResultedOn]
+	            CONVERT(VARCHAR, pv.resulted_on, 101) AS [ResultedOn], 'Star' AS [Source]
 	            FROM [mhgr_hybrid].[dbo].[patient_result_collections] prc
 	            INNER JOIN [mhgr_hybrid].[dbo].[variants] v ON v.gene_id = 2  -- CYP2C9
 	            INNER JOIN [mhgr_hybrid].[dbo].[patient_result_members] prm ON prm.member_type = 2 AND prm.collection_id = prc.id
@@ -465,7 +465,7 @@ namespace MHGR.HybridModels
 		            THEN 'Extensive metabolizer'
 		            ELSE 'Poor metabolizer'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -531,7 +531,7 @@ namespace MHGR.HybridModels
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
 		            ELSE 'Decreased'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -594,7 +594,7 @@ namespace MHGR.HybridModels
 		            WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -655,7 +655,7 @@ namespace MHGR.HybridModels
 		            WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
 		            ELSE 'No genetic risk found'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -765,7 +765,7 @@ namespace MHGR.HybridModels
 		            THEN 'Extensive metabolizer'
 		            ELSE 'Poor metabolizer'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -830,7 +830,7 @@ namespace MHGR.HybridModels
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
 		            ELSE 'Decreased'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -892,7 +892,7 @@ namespace MHGR.HybridModels
 		            WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM
             (
 	            SELECT patient_id,
@@ -952,7 +952,7 @@ namespace MHGR.HybridModels
 		            WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
 		            ELSE 'No genetic risk found'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM
             (
 	            SELECT patient_id,

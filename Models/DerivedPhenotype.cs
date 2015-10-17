@@ -12,5 +12,6 @@ namespace MHGR.Models
         public string Phenotype { get; set; }
         public string Value { get; set; }
         public string ResultedOn { get; set; }
+        public string Source { get; set; }
     }
 }

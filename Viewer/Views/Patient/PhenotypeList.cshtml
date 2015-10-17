@@ -3,7 +3,7 @@
     @foreach (var phenotype in Model)
     {
         <li class="phenotype">
-            <a href="javascript:void(0);" onclick="displayDetails('@phenotype.Phenotype', '@phenotype.ResultFileId');">
+            <a href="javascript:void(0);" onclick="displayDetails('@phenotype.Source', '@phenotype.ResultFileId', '@phenotype.Phenotype');">
                 @phenotype.Phenotype - @phenotype.Value
             </a>
             <small>@phenotype.ResultedOn</small>

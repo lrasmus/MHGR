@@ -44,10 +44,10 @@ namespace Viewer.Controllers
             return PartialView("Details", results);
         }
 
-        public PartialViewResult Result(string source, string id)
+        public PartialViewResult Result(string source, string id, string phenotype)
         {
             int resultFileId = int.Parse(id);
-            var resultDetails = new ResultDetails() { Phenotype = source, ResultFileId = resultFileId };
+            var resultDetails = new ResultDetails() { Phenotype = phenotype, ResultFileId = resultFileId, Source = source };
             return PartialView(resultDetails);
         }
     }

@@ -15,7 +15,7 @@ namespace Viewer
 
             routes.MapRoute(
                 name: "ResultDetails",
-                url: "Patient/Result/{source}/{id}",
+                url: "Patient/Result/{source}/{id}/{phenotype}",
                 defaults: new { controller = "Patient", action = "Result" }
             );
 

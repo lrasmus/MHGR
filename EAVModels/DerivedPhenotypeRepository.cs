@@ -34,7 +34,7 @@ namespace MHGR.EAVModels
 	            INNER JOIN phenotypes p ON ar.attribute2_id = p.id
             )
 
-            SELECT re.result_file_id AS [ResultFileId], p.parent_name as [phenotype], p.name as [value], CONVERT(VARCHAR, ro.value_date_time, 101) AS [ResultedOn]
+            SELECT re.result_file_id AS [ResultFileId], p.parent_name as [phenotype], p.name as [value], CONVERT(VARCHAR, ro.value_date_time, 101) AS [ResultedOn], 'Phenotype' AS [Source]
             FROM phenotypes p
 	            INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.attribute_id = p.id
 	            INNER JOIN [mhgr_eav].[dbo].[result_entities] ro ON ro.attribute_id = 72	-- Resulted on
@@ -47,7 +47,7 @@ namespace MHGR.EAVModels
         public List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT result_file_id AS [ResultFileId], [phenotype], [value], MAX([resulted_on]) AS [ResultedOn]
+            @"SELECT result_file_id AS [ResultFileId], [phenotype], [value], MAX([resulted_on]) AS [ResultedOn], 'Star' AS [Source]
             FROM
             (
 	            SELECT result_file_id,
@@ -159,7 +159,7 @@ namespace MHGR.EAVModels
 		            THEN 'Extensive metabolizer'
 		            ELSE 'Poor metabolizer'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -260,7 +260,7 @@ namespace MHGR.EAVModels
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
 		            ELSE 'Decreased'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -358,7 +358,7 @@ namespace MHGR.EAVModels
 		            WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -454,7 +454,7 @@ namespace MHGR.EAVModels
 		            WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
 		            ELSE 'No genetic risk found'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'SNP' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -573,7 +573,7 @@ namespace MHGR.EAVModels
 		            WHEN pvt.value1 IN ('2', '3', '4', '5', '6', '7', '8') AND pvt.value2 IN ('2', '3', '4', '5', '6', '7', '8') THEN 'Poor metabolizer'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            CONVERT(VARCHAR, re.value_date_time, 101) AS [ResultedOn]
+	            CONVERT(VARCHAR, re.value_date_time, 101) AS [ResultedOn], 'Star' AS [Source]
             FROM 
             (
 	            SELECT patient_id, result_file_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
@@ -603,7 +603,7 @@ namespace MHGR.EAVModels
 		            WHEN pvt.value1 IN ('1', '2', '3') AND pvt.value2 IN ('1', '2', '3') THEN 'Decreased'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            CONVERT(VARCHAR, re.value_date_time, 101) AS [ResultedOn]
+	            CONVERT(VARCHAR, re.value_date_time, 101) AS [ResultedOn], 'Star' AS [Source]
             FROM 
             (
 	            SELECT patient_id, result_file_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
@@ -668,7 +668,7 @@ namespace MHGR.EAVModels
 		            THEN 'Extensive metabolizer'
 		            ELSE 'Poor metabolizer'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -773,7 +773,7 @@ namespace MHGR.EAVModels
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
 		            ELSE 'Decreased'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -874,7 +874,7 @@ namespace MHGR.EAVModels
 		            WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM 
             (
 	            SELECT patient_id, result_file_id,
@@ -973,7 +973,7 @@ namespace MHGR.EAVModels
 		            WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
 		            ELSE 'No genetic risk found'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'VCF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -1122,7 +1122,7 @@ namespace MHGR.EAVModels
 		            THEN 'Extensive metabolizer'
 		            ELSE 'Poor metabolizer'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -1228,7 +1228,7 @@ namespace MHGR.EAVModels
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
 		            ELSE 'Decreased'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -1330,7 +1330,7 @@ namespace MHGR.EAVModels
 		            WHEN [rs6025] = 'Homozygous_Normal' AND [rs1799963] = 'Homozygous_Normal' THEN 'No genetic risk for thrombophilia, due to factor V Leiden or prothrombin'
 		            ELSE 'Unknown'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
@@ -1430,7 +1430,7 @@ namespace MHGR.EAVModels
 		            WHEN CHARINDEX('Variant', [rs375882485]) > 0 OR CHARINDEX('Variant', [rs397515937]) > 0 OR CHARINDEX('Variant', [rs397515963]) > 0 OR CHARINDEX('Variant', [rs397516074]) > 0 OR CHARINDEX('Variant', [rs397516083]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 4' 
 		            ELSE 'No genetic risk found'
 	            END AS [value],
-	            [resulted_on] AS [ResultedOn]
+	            [resulted_on] AS [ResultedOn], 'GVF' AS [Source]
             FROM 
             (
 	            SELECT patient_id,
