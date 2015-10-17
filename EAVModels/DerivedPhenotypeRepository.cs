@@ -34,24 +34,23 @@ namespace MHGR.EAVModels
 	            INNER JOIN phenotypes p ON ar.attribute2_id = p.id
             )
 
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, p.parent_name as [phenotype], p.name as [value], CONVERT(VARCHAR, ro.value_date_time, 101) AS [ResultedOn]
+            SELECT re.result_file_id AS [ResultFileId], p.parent_name as [phenotype], p.name as [value], CONVERT(VARCHAR, ro.value_date_time, 101) AS [ResultedOn]
             FROM phenotypes p
 	            INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.attribute_id = p.id
-	            INNER JOIN [mhgr_eav].[dbo].[patients] pt on pt.id = re.patient_id
 	            INNER JOIN [mhgr_eav].[dbo].[result_entities] ro ON ro.attribute_id = 72	-- Resulted on
 		            AND ro.parent_id = re.id
                 WHERE re.patient_id=@p0
-	            ORDER BY external_id, ResultedOn DESC", id);
+	            ORDER BY re.result_file_id, ResultedOn DESC", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT external_id, external_source, first_name, last_name, [phenotype], [value], MAX([resulted_on]) AS [ResultedOn]
+            @"SELECT result_file_id AS [ResultFileId], [phenotype], [value], MAX([resulted_on]) AS [ResultedOn]
             FROM
             (
-	            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+	            SELECT result_file_id,
 		            'Warfarin dosing range' AS [phenotype],
 		            CASE -- VKORC1 cases
 			            WHEN [vkorc1_value1] = '1' AND [vkorc1_value2] = '1' THEN
@@ -89,10 +88,10 @@ namespace MHGR.EAVModels
 		            [resulted_on]
 	            FROM 
 	            (
-		            SELECT patient_id, [1] AS [cyp2c9_value1], [2] AS [cyp2c9_value2], [3] AS [vkorc1_value1], [4] AS [vkorc1_value2], [5] AS [resulted_on]
+		            SELECT patient_id, result_file_id, [1] AS [cyp2c9_value1], [2] AS [cyp2c9_value2], [3] AS [vkorc1_value1], [4] AS [vkorc1_value2], [5] AS [resulted_on]
 		            FROM 
 		            (
-			            SELECT allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.patient_id ORDER BY gene.id, gene.attribute_id, allele.id) AS RowNum
+			            SELECT allele.patient_id, allele.result_file_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.patient_id ORDER BY gene.id, gene.attribute_id, allele.id) AS RowNum
 			            FROM [mhgr_eav].[dbo].[result_entities] gene
 				            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 					            AND allele.attribute_id = 129	-- Star allele
@@ -100,27 +99,26 @@ namespace MHGR.EAVModels
                             AND gene.patient_id=@p0
 			            UNION ALL
 
-			            SELECT allele.patient_id, CONVERT(VARCHAR, MIN(allele.value_date_time), 101), 5 AS RowNum
+			            SELECT allele.patient_id, allele.result_file_id, CONVERT(VARCHAR, MIN(allele.value_date_time), 101), 5 AS RowNum
 			            FROM [mhgr_eav].[dbo].[result_entities] gene
 				            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 					            AND allele.attribute_id = 72	-- Resulted on
 			            WHERE gene.attribute_id IN (32, 33)		-- CYP2C9, VKORC1
                             AND gene.patient_id=@p0
-			            GROUP BY allele.patient_id
+			            GROUP BY allele.patient_id, allele.result_file_id
 		            ) a
 		            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2], [3], [4], [5]) ) AS pvt
 	            ) pvt
-	            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
             ) AS a
-            GROUP BY external_id, external_source, first_name, last_name, [phenotype], [value]
-            ORDER BY external_source, external_id, [value]", id);
+            GROUP BY result_file_id, [phenotype], [value]
+            ORDER BY result_file_id, [value]", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetSNPPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            @"SELECT result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -165,6 +163,7 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [40] AS [rs12248560],
 		            [41] AS [rs28399504],
 		            [42] AS [rs41291556],
@@ -178,7 +177,7 @@ namespace MHGR.EAVModels
 		            [resulted_on]
 	            FROM
 	            (
-		            SELECT patient_id,
+		            SELECT patient_id, result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -197,6 +196,7 @@ namespace MHGR.EAVModels
 			            (
 				            SELECT id,
 				            patient_id,
+                            result_file_id,
 				            snp_id,
 				            [1] AS value1,
 				            COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
@@ -205,7 +205,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Get the resulted on attribute
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
@@ -219,7 +219,7 @@ namespace MHGR.EAVModels
 				            UNION ALL
 
 				            -- Get the reference base attribute
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
@@ -234,7 +234,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab SNP results which have no parent ID, and child alleles.
 				            -- Limit this to just SNPs that are under CYP2C19
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
@@ -250,12 +250,11 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
             -- Convert CYP2C9 SNPs to phenotype
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -265,12 +264,14 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [50] AS rs1057910,
 		            [51] AS rs1799853,
 		            [resulted_on]
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -288,6 +289,7 @@ namespace MHGR.EAVModels
 		            FROM
 			            (
 			            SELECT id,
+                            result_file_id,
 				            patient_id,
 				            snp_id,
 				            [1] AS value1,
@@ -297,7 +299,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on attribute
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
@@ -311,7 +313,7 @@ namespace MHGR.EAVModels
 				            UNION ALL
 
 				            -- Grab the reference bases for the SNP
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
@@ -326,7 +328,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab SNP results which have no parent ID, and child alleles.
 				            -- Limit this to just SNPs that are under CYP2C9
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
@@ -342,11 +344,10 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -361,12 +362,14 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [55] AS [rs6025],		-- F5
 		            [56] AS [rs1799963],	-- F2
 		            [resulted_on]
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -385,6 +388,7 @@ namespace MHGR.EAVModels
 			            (
 			            SELECT id,
 				            patient_id,
+                            result_file_id,
 				            snp_id,
 				            [1] AS value1,
 				            COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
@@ -393,7 +397,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on date
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
@@ -407,7 +411,7 @@ namespace MHGR.EAVModels
 				            UNION ALL
 
 				            -- Grab the reference bases
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
@@ -422,7 +426,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab SNP results which have no parent ID, and child alleles.
 				            -- Limit this to just SNPs that are under F2 and F5 genes
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
@@ -438,11 +442,10 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -455,6 +458,7 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [57] AS [rs121913626],
 		            [58] AS [rs3218713],
 		            [59] AS [rs3218714],
@@ -474,6 +478,7 @@ namespace MHGR.EAVModels
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -491,6 +496,7 @@ namespace MHGR.EAVModels
 		            FROM
 			            (
 			            SELECT id,
+                            result_file_id,
 				            patient_id,
 				            snp_id,
 				            [1] AS value1,
@@ -500,7 +506,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on date
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] res_dt ON res_dt.parent_id = snps.id 
@@ -514,7 +520,7 @@ namespace MHGR.EAVModels
 				            UNION ALL
 
 				            -- Grab the reference bases
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = snps.id 
@@ -529,7 +535,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab SNP results which have no parent ID, and child alleles.
 				            -- Limit this to just SNPs that are under MYH7, TNNT2, TPM1, MYBPC3 genes
-				            SELECT snps.patient_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT snps.patient_id, snps.result_file_id, snps.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY snps.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] snps
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON ar.attribute1_id = snps.attribute_id
@@ -545,15 +551,14 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            ORDER BY pt.external_id, phenotype", id);
+            ORDER BY result_file_id, phenotype", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name, 'Clopidogrel metabolism' AS [phenotype],
+            @"SELECT pvt.result_file_id AS [ResultFileId], 'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            -- Ultrarapid can be *1/*17, *17/*1, *17/*17
 		            WHEN pvt.value1 ='1' AND pvt.value2 = '17' THEN 'Ultrarapid metabolizer'
@@ -571,10 +576,10 @@ namespace MHGR.EAVModels
 	            CONVERT(VARCHAR, re.value_date_time, 101) AS [ResultedOn]
             FROM 
             (
-	            SELECT patient_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
+	            SELECT patient_id, result_file_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
 	            FROM 
 	            (
-		            SELECT gene.id AS [gene_entity_id], allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.id, allele.attribute_id ORDER BY gene.attribute_id, allele.id) AS RowNum
+		            SELECT gene.id AS [gene_entity_id], allele.result_file_id, allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.id, allele.attribute_id ORDER BY gene.attribute_id, allele.id) AS RowNum
 		            FROM [mhgr_eav].[dbo].[result_entities] gene
 			            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 				            AND allele.attribute_id = 129	-- Star allele
@@ -583,7 +588,6 @@ namespace MHGR.EAVModels
 	            ) a
 	            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
             ) pvt
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
             INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.parent_id = gene_entity_id
 	            AND re.attribute_id = 72 -- Resulted on
 
@@ -591,7 +595,7 @@ namespace MHGR.EAVModels
 
             -- Translate the CYP2C9 stars for warfarin metabolism
             -- https://www.pharmgkb.org/guideline/PA166104949
-            SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            SELECT pvt.result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            -- Everything except *1/*1 is Decreased, but check to make sure we don't have unknown values
@@ -602,10 +606,10 @@ namespace MHGR.EAVModels
 	            CONVERT(VARCHAR, re.value_date_time, 101) AS [ResultedOn]
             FROM 
             (
-	            SELECT patient_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
+	            SELECT patient_id, result_file_id, gene_entity_id, [1] AS [value1], [2] AS [value2]
 	            FROM 
 	            (
-		            SELECT gene.id AS [gene_entity_id], allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.id, allele.attribute_id ORDER BY gene.attribute_id, allele.id) AS RowNum
+		            SELECT gene.id AS [gene_entity_id], allele.result_file_id, allele.patient_id, allele.value_short_text, ROW_NUMBER() OVER (PARTITION BY gene.id, allele.attribute_id ORDER BY gene.attribute_id, allele.id) AS RowNum
 		            FROM [mhgr_eav].[dbo].[result_entities] gene
 			            INNER JOIN [mhgr_eav].[dbo].[result_entities] allele ON allele.parent_id = gene.id
 				            AND allele.attribute_id = 129	-- Star allele
@@ -614,17 +618,16 @@ namespace MHGR.EAVModels
 	            ) a
 	            PIVOT ( MAX(value_short_text) FOR RowNum IN ([1], [2]) ) AS pvt
             ) pvt
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = pvt.patient_id
             INNER JOIN [mhgr_eav].[dbo].[result_entities] re ON re.parent_id = gene_entity_id
 	            AND re.attribute_id = 72 -- Resulted on
-            ORDER BY pt.external_id, CONVERT(VARCHAR, re.value_date_time, 101) DESC, [value]", id);
+            ORDER BY pvt.result_file_id, CONVERT(VARCHAR, re.value_date_time, 101) DESC, [value]", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            @"SELECT result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -669,6 +672,7 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [40] AS [rs12248560],
 		            [41] AS [rs28399504],
 		            [42] AS [rs41291556],
@@ -682,7 +686,7 @@ namespace MHGR.EAVModels
 		            [resulted_on]
 	            FROM
 	            (
-		            SELECT patient_id,
+		            SELECT patient_id, result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -701,6 +705,7 @@ namespace MHGR.EAVModels
 			            (
 			            SELECT id,
 				            patient_id,
+                            result_file_id,
 				            snp_id,
 				            [1] AS value1,
 				            COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
@@ -709,7 +714,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
@@ -720,13 +725,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -742,7 +746,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab vcf features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under CYP2C19
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -759,12 +763,11 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
             -- Convert CYP2C9 SNPs to phenotype
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -774,12 +777,13 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [50] AS rs1057910,
 		            [51] AS rs1799853,
 		            [resulted_on]
 	            FROM
 	            (
-		            SELECT patient_id,
+		            SELECT patient_id, result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -797,6 +801,7 @@ namespace MHGR.EAVModels
 		            FROM
 			            (
 				            SELECT id,
+                            result_file_id,
 				            patient_id,
 				            snp_id,
 				            [1] AS value1,
@@ -806,7 +811,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
@@ -817,13 +822,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -839,7 +843,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab vcf features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under CYP2C9
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -856,11 +860,10 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -874,13 +877,13 @@ namespace MHGR.EAVModels
 	            [resulted_on] AS [ResultedOn]
             FROM 
             (
-	            SELECT patient_id,
+	            SELECT patient_id, result_file_id,
 		            [55] AS [rs6025],		-- F5
 		            [56] AS [rs1799963],	-- F2
 		            [resulted_on]
 	            FROM
 	            (
-		            SELECT patient_id,
+		            SELECT patient_id, result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -898,6 +901,7 @@ namespace MHGR.EAVModels
 		            FROM
 			            (
 			            SELECT id,
+                            result_file_id,
 				            patient_id,
 				            snp_id,
 				            [1] AS value1,
@@ -907,7 +911,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
@@ -924,7 +928,7 @@ namespace MHGR.EAVModels
 				            UNION ALL
 
 				            -- Grab reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -940,7 +944,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab vcf features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under F2 or F5 genes
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -957,11 +961,10 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -974,6 +977,7 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [57] AS [rs121913626],
 		            [58] AS [rs3218713],
 		            [59] AS [rs3218714],
@@ -993,6 +997,7 @@ namespace MHGR.EAVModels
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -1010,6 +1015,7 @@ namespace MHGR.EAVModels
 		            FROM
 			            (
 			            SELECT id,
+                            result_file_id,
 				            patient_id,
 				            snp_id,
 				            [1] AS value1,
@@ -1019,7 +1025,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] vcf ON vcf.id = features.parent_id
@@ -1030,13 +1036,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)  -- MYH7, TNNT2, TPM1, MYBPC3
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -1052,7 +1057,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab vcf features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under MYH7, TNNT2, TPM1, MYBPC3 genes
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -1069,15 +1074,14 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            ORDER BY pt.external_id, phenotype", id);
+            ORDER BY result_file_id, phenotype", id);
             return data.ToList();
         }
 
         public List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT pt.external_id, pt.external_source, pt.first_name, pt.last_name,
+            @"SELECT result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -1122,6 +1126,7 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [40] AS [rs12248560],
 		            [41] AS [rs28399504],
 		            [42] AS [rs41291556],
@@ -1136,6 +1141,7 @@ namespace MHGR.EAVModels
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -1154,6 +1160,7 @@ namespace MHGR.EAVModels
 			            (
 			            SELECT id,
 				            patient_id,
+                            result_file_id,
 				            snp_id,
 				            [1] AS value1,
 				            COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
@@ -1162,7 +1169,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
@@ -1173,13 +1180,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 31		-- CYP2C19
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab the reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -1195,7 +1201,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab GVF features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under CYP2C19
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -1212,12 +1218,11 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([40], [41], [42], [43], [44], [45], [46], [47], [48], [49]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
             -- Convert CYP2C9 SNPs to phenotype
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -1227,12 +1232,14 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [50] AS rs1057910,
 		            [51] AS rs1799853,
 		            [resulted_on]
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -1251,6 +1258,7 @@ namespace MHGR.EAVModels
 			            (
 			            SELECT id,
 				            patient_id,
+                            result_file_id,
 				            snp_id,
 				            [1] AS value1,
 				            COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
@@ -1259,7 +1267,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
@@ -1270,13 +1278,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id = 32		-- CYP2C9
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab the reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -1292,7 +1299,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab GVF features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under CYP2C9
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -1309,11 +1316,10 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([50], [51]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -1328,12 +1334,14 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [55] AS [rs6025],		-- F5
 		            [56] AS [rs1799963],	-- F2
 		            [resulted_on]
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -1352,6 +1360,7 @@ namespace MHGR.EAVModels
 			            (
 			            SELECT id,
 				            patient_id,
+                            result_file_id,
 				            snp_id,
 				            [1] AS value1,
 				            COALESCE([2], [1]) AS value2,  -- If only one value is set, we assume the alleles are homozygous
@@ -1360,7 +1369,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
@@ -1371,13 +1380,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5			-- Variant of gene
 					            AND ar.attribute2_id IN (34, 35)    -- F2, F5
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab the reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -1393,7 +1401,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab GVF features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under F2 or F5
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -1410,11 +1418,10 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([55], [56]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
 
             UNION ALL
 
-            SELECT pt.external_id AS [patient_id], pt.external_source, pt.first_name, pt.last_name,
+            SELECT result_file_id AS [ResultFileId],
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -1427,6 +1434,7 @@ namespace MHGR.EAVModels
             FROM 
             (
 	            SELECT patient_id,
+                    result_file_id,
 		            [57] AS [rs121913626],
 		            [58] AS [rs3218713],
 		            [59] AS [rs3218714],
@@ -1446,6 +1454,7 @@ namespace MHGR.EAVModels
 	            FROM
 	            (
 		            SELECT patient_id,
+                        result_file_id,
 			            snp_id,
 			            CASE
 				            WHEN v.value1 = v.value2 THEN
@@ -1463,6 +1472,7 @@ namespace MHGR.EAVModels
 		            FROM
 			            (
 			            SELECT id,
+                            result_file_id,
 				            patient_id,
 				            snp_id,
 				            [1] AS value1,
@@ -1472,7 +1482,7 @@ namespace MHGR.EAVModels
 			            FROM
 			            (
 				            -- Grab the resulted on date
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], CONVERT(VARCHAR, res_dt.value_date_time, 101) AS [value_short_text],
 					            4 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] gvf ON gvf.id = features.parent_id
@@ -1483,13 +1493,12 @@ namespace MHGR.EAVModels
 				            INNER JOIN  [mhgr_eav].[dbo].[attribute_relationships] ar ON snps.attribute_id = ar.attribute1_id
 					            AND ar.relationship_id = 5		-- Variant of gene
 					            AND ar.attribute2_id IN (36, 37, 38, 39)	-- MYH7, TNNT2, TPM1, MYBPC3
-				            INNER JOIN [mhgr_eav].[dbo].[patients] p ON p.id = features.patient_id
-                                AND features.patient_id=@p0
+				            WHERE features.patient_id=@p0
 
 				            UNION ALL
 
 				            -- Grab the reference bases
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], refs.value_short_text,
 					            3 AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] refs ON refs.parent_id = features.id 
@@ -1505,7 +1514,7 @@ namespace MHGR.EAVModels
 
 				            -- Grab GVF features, features have children specific SNPs, which have children SNP allele attributes
 				            -- Limit this to just SNPs that are under MYH7, TNNT2, TPM1, MYBPC3
-				            SELECT features.patient_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
+				            SELECT features.patient_id, features.result_file_id, features.id, snps.attribute_id AS [snp_id], alleles.value_short_text,
 					            ROW_NUMBER() OVER (PARTITION BY snps.id, snps.attribute_id ORDER BY features.patient_id, snps.attribute_id) AS RowNum
 				            FROM  [mhgr_eav].[dbo].[result_entities] features
 				            INNER JOIN  [mhgr_eav].[dbo].[result_entities] snps ON snps.parent_id = features.id 
@@ -1522,8 +1531,7 @@ namespace MHGR.EAVModels
 	            ) snps
 	            PIVOT ( MAX(zygosity) FOR snp_id IN ([57], [58], [59], [60], [61], [62], [63], [64], [65], [66], [67], [68], [69], [70], [71]) ) AS pvt
             ) v
-            INNER JOIN [mhgr_eav].[dbo].[patients] pt ON pt.id = v.patient_id
-            ORDER BY pt.external_id, phenotype", id);
+            ORDER BY result_file_id, phenotype", id);
             return data.ToList();
         }
     }
