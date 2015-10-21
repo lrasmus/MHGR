@@ -1,6 +1,8 @@
 ﻿@model Viewer.Models.ResultDetails
 
-@Model.Phenotype
 <div>
-    Displaying details from @Model.Source file #@Model.ResultFileId
+    @foreach(var detail in Model.Details)
+    {
+        @Html.Raw(detail)
+    }
 </div>

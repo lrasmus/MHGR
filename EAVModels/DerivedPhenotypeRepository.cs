@@ -13,6 +13,11 @@ namespace MHGR.EAVModels
     {
         private EAVEntities entities = new EAVEntities();
 
+        public List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype)
+        {
+            return null;
+        }
+
         public List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(

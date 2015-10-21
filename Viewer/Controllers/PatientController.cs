@@ -44,10 +44,21 @@ namespace Viewer.Controllers
             return PartialView("Details", results);
         }
 
-        public PartialViewResult Result(string source, string id, string phenotype)
+        public ActionResult Result(string source, string id, string phenotype)
         {
+            if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(phenotype))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             int resultFileId = int.Parse(id);
-            var resultDetails = new ResultDetails() { Phenotype = phenotype, ResultFileId = resultFileId, Source = source };
+            var resultDetails = new ResultDetails()
+            {
+                Phenotype = phenotype,
+                ResultFileId = resultFileId,
+                Source = source,
+                Details = PhenotypeRepository.GetResultFileDetailsForPhenotype(source, resultFileId, phenotype)
+            };
             return PartialView(resultDetails);
         }
     }

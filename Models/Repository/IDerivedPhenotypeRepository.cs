@@ -14,5 +14,7 @@ namespace MHGR.Models.Repository
         List<DerivedPhenotype> GetVCFPhenotypes(int id);
         List<DerivedPhenotype> GetGVFPhenotypes(int id);
         List<DerivedPhenotype> GetDosing(int id);
+
+        List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype);
     }
 }

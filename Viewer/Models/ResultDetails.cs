@@ -10,5 +10,6 @@ namespace Viewer.Models
         public string Phenotype { get; set; }
         public int ResultFileId { get; set; }
         public string Source { get; set; }
+        public List<string> Details { get; set; }
     }
 }

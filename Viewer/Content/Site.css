@@ -116,10 +116,29 @@ textarea {
     text-align: center;
 }
 
+/* Fix issue with offset content in dialog */
 @media screen and (min-width: 768px) {
     .modal-dialog {
         left: auto;
     }
+}
+
+div.result-footer {
+    padding-top: 20px;
+}
+
+small {
+    font-size: 75%;
+    color: #999;
+}
+
+.variant small {
+    padding-left: 10px;
+}
+
+.alternate {
+    font-weight: bold;
+    color: #d80303;
 }
 
 /* Solution for spinner provided by:

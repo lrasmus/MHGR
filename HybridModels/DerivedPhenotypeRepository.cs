@@ -13,6 +13,113 @@ namespace MHGR.HybridModels
     {
         private HybridEntities entities = new HybridEntities();
 
+        public List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype)
+        {
+            List<string> details = new List<string>();
+
+            var file = entities.result_files.Where(x => x.id == fileId).FirstOrDefault();
+            if (file == null)
+            {
+                details.Add("The results file that created this result could not be found");
+                return details;
+            }
+
+            switch (source)
+            {
+                case "Phenotype":
+                case "Star":
+                case "SNP":
+                case "VCF":
+                case "GVF":
+                    details.AddRange(GetPhenotypeDetails(file, phenotype));
+                    break;
+                default:
+                    details.Add(string.Format("We're unable to handle '{0}' results", source));
+                    break;
+            }
+
+            details.Add("<div class='result-footer'>");
+            details.Add(string.Format("<div><small>Received in the file: {0}</small></div>", file.name));
+            details.Add(string.Format("<div><small>Received on: {0}</small></div>", file.received_on.ToShortDateString()));
+            details.Add("</div>");
+
+            return details;
+        }
+
+        private int[] GetGeneFilterForPhenotype(string phenotype)
+        {
+            switch (phenotype)
+            {
+                case "Clopidogrel metabolism":
+                    return entities.genes.Where(x => x.name == "CYP2C19").Select(x => x.id).ToArray();
+                case "Familial Thrombophilia":
+                    return entities.genes.Where(x => x.name == "CYP2C9" || x.name == "VKORC1").Select(x => x.id).ToArray();
+                case "Hypertrophic Cardiomyopathy":
+                    return entities.genes.Where(x => x.name == "F2" || x.name == "F5").Select(x => x.id).ToArray();
+                case "Warfarin metabolism":
+                    return entities.genes.Where(x => x.name == "MYH7" || x.name == "TNNT2" || x.name == "TPM1" || x.name == "MYBPC3").Select(x => x.id).ToArray();
+                default:
+                    return null;
+            }
+        }
+
+        private List<string> GetPhenotypeDetails(result_files file, string phenotype)
+        {
+            List<string> details = new List<string>();
+            var geneIds = GetGeneFilterForPhenotype(phenotype);
+            if (geneIds == null)
+            {
+                return details;
+            }
+
+            foreach (var collection in file.patient_result_collections)
+            {
+                foreach (var member in collection.patient_result_members)
+                {
+                    switch (member.member_type)
+                    {
+                        case Enums.ResultMemberType.Phenotype:
+                            var patientPhenotype = entities.patient_phenotypes.Where(x => x.id == member.member_id).FirstOrDefault();
+                            details.Add(string.Format("<div>The phenotype {0} {1} was resulted on {2} <small>{3} {4}</small></div>",
+                                patientPhenotype.phenotype.name, patientPhenotype.phenotype.value, patientPhenotype.resulted_on.Value.ToShortDateString(), patientPhenotype.phenotype.external_source, patientPhenotype.phenotype.external_id));
+                            break;
+                        case Enums.ResultMemberType.Variant:
+                            StringBuilder builder = new StringBuilder();
+                            var patientVariant = entities.patient_variants.Where(x => x.id == member.member_id).FirstOrDefault();
+                            switch (patientVariant.variant_type)
+                            {
+                                case Enums.PatientVariantType.SNP:
+                                case Enums.PatientVariantType.StarVariant:
+                                    var variant = entities.variants.Where(x =>
+                                        x.id == patientVariant.reference_id && x.gene_id.HasValue && geneIds.Contains(x.gene_id.Value)).FirstOrDefault();
+                                    if (variant != null)
+                                    {
+                                        builder.AppendFormat("<div class='variant'>{0}: ", variant.external_id);
+                                        builder.AppendFormat("<span class='{0}'>{1}</span>",
+                                            variant.reference_bases == patientVariant.value1 ? "alternate" : "normal",
+                                            patientVariant.value1);
+                                        builder.AppendFormat("<span class='{0}'>{1}</span>",
+                                            variant.reference_bases == patientVariant.value2 ? "alternate" : "normal",
+                                            patientVariant.value2);
+                                        builder.AppendFormat("<small>On chr{0}, Reference is {1} from {2}</small></div>", variant.chromosome, variant.reference_bases, variant.reference_genome);
+                                    }
+                                    break;
+                                case Enums.PatientVariantType.Collection:
+                                    break;
+                                default:
+                                    details.Add(string.Format("The variant type {0} for variant {1} could not be displayed", patientVariant.variant_type, patientVariant.reference_id));
+                                    break;
+                            }
+                            details.Add(builder.ToString());
+                            //details.Add(string.Format("<div>{0} = {1}{2} ({3})</div>", formattedVariant, patientVariant.value1, patientVariant.value2, patientVariant.resulted_on.Value.ToShortDateString()));
+                            break;
+                    }
+                }
+            }
+
+            return details;
+        }
+
         public List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
