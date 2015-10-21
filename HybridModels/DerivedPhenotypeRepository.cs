@@ -52,11 +52,12 @@ namespace MHGR.HybridModels
             {
                 case "Clopidogrel metabolism":
                     return entities.genes.Where(x => x.name == "CYP2C19").Select(x => x.id).ToArray();
-                case "Familial Thrombophilia":
-                    return entities.genes.Where(x => x.name == "CYP2C9" || x.name == "VKORC1").Select(x => x.id).ToArray();
-                case "Hypertrophic Cardiomyopathy":
-                    return entities.genes.Where(x => x.name == "F2" || x.name == "F5").Select(x => x.id).ToArray();
                 case "Warfarin metabolism":
+                case "Warfarin dosing range":
+                    return entities.genes.Where(x => x.name == "CYP2C9" || x.name == "VKORC1").Select(x => x.id).ToArray();
+                case "Familial Thrombophilia":
+                    return entities.genes.Where(x => x.name == "F2" || x.name == "F5").Select(x => x.id).ToArray();
+                case "Hypertrophic Cardiomyopathy":
                     return entities.genes.Where(x => x.name == "MYH7" || x.name == "TNNT2" || x.name == "TPM1" || x.name == "MYBPC3").Select(x => x.id).ToArray();
                 default:
                     return null;
@@ -86,22 +87,36 @@ namespace MHGR.HybridModels
                         case Enums.ResultMemberType.Variant:
                             StringBuilder builder = new StringBuilder();
                             var patientVariant = entities.patient_variants.Where(x => x.id == member.member_id).FirstOrDefault();
+                            variant variant = null;
                             switch (patientVariant.variant_type)
                             {
                                 case Enums.PatientVariantType.SNP:
-                                case Enums.PatientVariantType.StarVariant:
-                                    var variant = entities.variants.Where(x =>
+                                    variant = entities.variants.Where(x =>
                                         x.id == patientVariant.reference_id && x.gene_id.HasValue && geneIds.Contains(x.gene_id.Value)).FirstOrDefault();
                                     if (variant != null)
                                     {
                                         builder.AppendFormat("<div class='variant'>{0}: ", variant.external_id);
                                         builder.AppendFormat("<span class='{0}'>{1}</span>",
-                                            variant.reference_bases == patientVariant.value1 ? "alternate" : "normal",
+                                            variant.reference_bases == patientVariant.value1 ? "normal" : "alternate",
                                             patientVariant.value1);
                                         builder.AppendFormat("<span class='{0}'>{1}</span>",
-                                            variant.reference_bases == patientVariant.value2 ? "alternate" : "normal",
+                                            variant.reference_bases == patientVariant.value2 ? "normal" : "alternate",
                                             patientVariant.value2);
                                         builder.AppendFormat("<small>On chr{0}, Reference is {1} from {2}</small></div>", variant.chromosome, variant.reference_bases, variant.reference_genome);
+                                    }
+                                    break;
+                                case Enums.PatientVariantType.StarVariant:
+                                    variant = entities.variants.Where(x =>
+                                        x.id == patientVariant.reference_id && x.gene_id.HasValue && geneIds.Contains(x.gene_id.Value)).FirstOrDefault();
+                                    if (variant != null)
+                                    {
+                                        builder.AppendFormat("<div class='variant'>{0}: ", variant.gene.name);
+                                        builder.AppendFormat("<span class='{0}'>*{1}</span>/",
+                                            "1" == patientVariant.value1 ? "normal" : "alternate",
+                                            patientVariant.value1);
+                                        builder.AppendFormat("<span class='{0}'>{1}</span>",
+                                            "1" == patientVariant.value2 ? "normal" : "alternate",
+                                            patientVariant.value2);
                                     }
                                     break;
                                 case Enums.PatientVariantType.Collection:
@@ -485,7 +500,7 @@ namespace MHGR.HybridModels
         public List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT prc.result_file_id,
+            @"SELECT prc.result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [Phenotype],
 	            CASE
 		            -- Ultrarapid can be *1/*17, *17/*1, *17/*17
@@ -510,7 +525,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT prc.result_file_id,
+            SELECT prc.result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [Phenotype],
 	            CASE
 		            -- Everything except *1/*1 is Decreased, but check to make sure we don't have unknown values
@@ -531,7 +546,7 @@ namespace MHGR.HybridModels
         public List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT result_file_id,
+            @"SELECT result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -632,7 +647,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT result_file_id,
+            SELECT result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -690,7 +705,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT result_file_id,
+            SELECT result_file_id AS [ResultFileId],
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -753,7 +768,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT result_file_id,
+            SELECT result_file_id AS [ResultFileId],
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
@@ -831,7 +846,7 @@ namespace MHGR.HybridModels
         public List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
-            @"SELECT result_file_id,
+            @"SELECT result_file_id AS [ResultFileId],
 	            'Clopidogrel metabolism' AS [phenotype],
 	            CASE
 		            WHEN ([rs12248560] = 'Homozygous_Variant' OR [rs12248560] = 'Heterozygous_Variant')
@@ -931,7 +946,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT result_file_id,
+            SELECT result_file_id AS [ResultFileId],
 	            'Warfarin metabolism' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs1057910]) = 0 AND CHARINDEX('Variant', [rs1799853]) = 0 THEN 'Normal'
@@ -988,7 +1003,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT result_file_id,
+            SELECT result_file_id AS [ResultFileId],
 	            'Familial Thrombophilia' AS [phenotype],
 	            CASE
 		            WHEN [rs6025] = 'Homozygous_Variant' AND CHARINDEX('Variant', [rs1799963]) = 0 THEN 'Homozygous Factor V Leiden mutation'
@@ -1050,7 +1065,7 @@ namespace MHGR.HybridModels
 
             UNION ALL
 
-            SELECT result_file_id,
+            SELECT result_file_id AS [ResultFileId],
 	            'Hypertrophic Cardiomyopathy' AS [phenotype],
 	            CASE
 		            WHEN CHARINDEX('Variant', [rs121913626]) > 0 OR CHARINDEX('Variant', [rs3218713]) > 0 OR CHARINDEX('Variant', [rs3218714]) > 0 THEN 'Cardiomyopathy, Familial Hypertrophic, 1' 
