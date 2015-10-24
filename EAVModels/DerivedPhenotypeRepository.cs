@@ -27,11 +27,15 @@ namespace MHGR.EAVModels
             switch (source)
             {
                 case "Phenotype":
+                    details.AddRange(GetPhenotypeDetails(file, phenotype));
+                    break;
                 case "Star":
+                    details.AddRange(GetPhenotypeDetailsForStar(file, phenotype));
+                    break;
                 case "SNP":
                 case "VCF":
                 case "GVF":
-                    details.AddRange(GetPhenotypeDetails(file, phenotype));
+                    details.AddRange(GetPhenotypeDetailsForSNP(file, phenotype));
                     break;
                 default:
                     details.Add(string.Format("We're unable to handle '{0}' results", source));
@@ -46,6 +50,12 @@ namespace MHGR.EAVModels
             return details;
         }
 
+        private class DetailResult
+        {
+            public string AttributeName { get; set; }
+            public result_entities Result { get; set; }
+        }
+        
         private List<string> GetPhenotypeDetails(result_files file, string phenotype)
         {
             List<string> details = new List<string>();
@@ -55,11 +65,106 @@ namespace MHGR.EAVModels
                 return details;
             }
 
-            var rootEntities = file.result_entities.Where(x => x.parent_id == null).ToList();
-            foreach (var entity in rootEntities)
+            var results = (from re in entities.result_entities
+                           join attr in entities.attributes on re.attribute_id equals attr.id
+                           join phenRel in entities.attribute_relationships on attr.id equals phenRel.attribute1_id
+                           join phenAttr in entities.attributes on phenRel.attribute2_id equals phenAttr.id
+                           join geneRel in entities.attribute_relationships on phenRel.attribute2_id equals geneRel.attribute1_id
+                           where phenRel.relationship_id == 2 && geneIds.Contains(geneRel.attribute2_id) && geneRel.relationship_id == 3
+                            && re.result_file_id == file.id
+                           select new List<string>() { phenAttr.name, attr.name }).ToArray();
+
+            List<string> uniqueValues = new List<string>();
+            foreach (var result in results) 
             {
-                details.Add(string.Format("{0}: {1}", entity.attribute.name, FormatResultEntityValue(entity)));
+                string value = string.Format("<div>{0}: {1}</div>", result[0], result[1]);
+                if (!uniqueValues.Contains(value))
+                {
+                    details.Add(value);
+                    uniqueValues.Add(value);
+                }
+                
             }
+
+            return details;
+        }
+
+        private List<string> GetPhenotypeDetailsForStar(result_files file, string phenotype)
+        {
+            List<string> details = new List<string>();
+            var geneIds = GetGeneFilterForPhenotype(phenotype);
+            if (geneIds == null)
+            {
+                return details;
+            }
+
+            var results = (from re in entities.result_entities
+                           join parentEnt in entities.result_entities on re.parent_id equals parentEnt.id
+                           join attr in entities.attributes on parentEnt.attribute_id equals attr.id
+                           where geneIds.Contains(attr.id)
+                            && re.result_file_id == file.id && re.attribute_id == 129
+                           select new DetailResult() { AttributeName = attr.name, Result = re }).ToArray();
+
+            string currentGene = "";
+            foreach (var result in results)
+            {
+                if (string.IsNullOrEmpty(currentGene))
+                {
+                    details.Add(string.Format("<div>{0}: *{1}", result.AttributeName, FormatResultEntityValue(result.Result)));
+                }
+                else if (currentGene != result.AttributeName)
+                {
+                    details.Add(string.Format("</div><div>{0}: {1}", result.AttributeName, FormatResultEntityValue(result.Result)));
+                }
+                else
+                {
+                    details.Add(string.Format("/*{0}", FormatResultEntityValue(result.Result)));
+                }
+
+                currentGene = result.AttributeName;
+            }
+            details.Add("</div>");
+
+            return details;
+        }
+
+        private List<string> GetPhenotypeDetailsForSNP(result_files file, string phenotype)
+        {
+            List<string> details = new List<string>();
+            var geneIds = GetGeneFilterForPhenotype(phenotype);
+            if (geneIds == null)
+            {
+                return details;
+            }
+
+            var results = (from valRes in entities.result_entities
+                           join varRes in entities.result_entities on valRes.parent_id equals varRes.id
+                           join attr in entities.attributes on varRes.attribute_id equals attr.id
+                           join rel in entities.attribute_relationships on attr.id equals rel.attribute1_id
+                           where rel.relationship_id == 5 && geneIds.Contains(rel.attribute2_id) && varRes.result_file_id == file.id
+                             && (valRes.attribute_id == 128 || valRes.attribute_id == 129)
+                           orderby attr.name
+                           select new DetailResult() { AttributeName = attr.name, Result = valRes }).ToArray();
+
+            string currentVariant = "";
+            foreach (var result in results)
+            {
+                if (string.IsNullOrEmpty(currentVariant))
+                {
+                    details.Add(string.Format("<div>{0}: {1}", result.AttributeName, FormatResultEntityValue(result.Result)));
+                }
+                else if (currentVariant != result.AttributeName)
+                {
+                    details.Add(string.Format("</div><div>{0}: {1}", result.AttributeName, FormatResultEntityValue(result.Result)));
+                }
+                else
+                {
+                    details.Add(FormatResultEntityValue(result.Result));
+                }
+
+                currentVariant = result.AttributeName;
+            }
+            details.Add("</div>");
 
             return details;
         }
@@ -97,7 +202,21 @@ namespace MHGR.EAVModels
 
         public override int[] GetGeneIdListForGeneNames(string[] geneNames)
         {
-            return entities.attribute_relationships.Where(x => x.attribute2_id == 30 && x.relationship_id == 2).Select(x => x.attribute1_id).ToArray();
+            return (from attr in entities.attributes
+                    join rel in entities.attribute_relationships on attr.id equals rel.attribute1_id
+                    where rel.attribute2_id == 30 && rel.relationship_id == 2 && geneNames.Contains(attr.name)
+                    select attr.id).ToArray();
+            //return entities.attribute_relationships.Where(x => x.attribute2_id == 30 && x.relationship_id == 2).Select(x => x.attribute1_id).ToArray();
+        }
+
+        private List<attribute> GetVariantsForGenes(int[] genes)
+        {
+            var variants = from attr in entities.attributes
+                           join rel in entities.attribute_relationships on attr.id equals rel.attribute1_id
+                           where rel.relationship_id == 5 && genes.Contains(rel.attribute2_id)
+                           select attr;
+            return variants.ToList();
+            //return entities.attribute_relationships.Where(x => genes.Contains(x.attribute2_id) && x.relationship_id == 5).Select(x => x.attribute1_id).ToArray();
         }
 
         public override List<DerivedPhenotype> GetPhenotypes(int id)
