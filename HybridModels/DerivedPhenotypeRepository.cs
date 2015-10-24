@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace MHGR.HybridModels
 {
-    public class DerivedPhenotypeRepository : IDerivedPhenotypeRepository
+    public class DerivedPhenotypeRepository : BaseDerivedPhenotypeRepository
     {
         private HybridEntities entities = new HybridEntities();
 
-        public List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype)
+        public override List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype)
         {
             List<string> details = new List<string>();
 
@@ -46,22 +46,9 @@ namespace MHGR.HybridModels
             return details;
         }
 
-        private int[] GetGeneFilterForPhenotype(string phenotype)
+        public override int[] GetGeneIdListForGeneNames(string[] geneNames)
         {
-            switch (phenotype)
-            {
-                case "Clopidogrel metabolism":
-                    return entities.genes.Where(x => x.name == "CYP2C19").Select(x => x.id).ToArray();
-                case "Warfarin metabolism":
-                case "Warfarin dosing range":
-                    return entities.genes.Where(x => x.name == "CYP2C9" || x.name == "VKORC1").Select(x => x.id).ToArray();
-                case "Familial Thrombophilia":
-                    return entities.genes.Where(x => x.name == "F2" || x.name == "F5").Select(x => x.id).ToArray();
-                case "Hypertrophic Cardiomyopathy":
-                    return entities.genes.Where(x => x.name == "MYH7" || x.name == "TNNT2" || x.name == "TPM1" || x.name == "MYBPC3").Select(x => x.id).ToArray();
-                default:
-                    return null;
-            }
+            return entities.genes.Where(x => geneNames.Contains(x.name)).Select(x => x.id).ToArray();
         }
 
         private List<string> GetPhenotypeDetails(result_files file, string phenotype)
@@ -135,7 +122,7 @@ namespace MHGR.HybridModels
             return details;
         }
 
-        public List<DerivedPhenotype> GetPhenotypes(int id)
+        public override List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT prc.result_file_id AS [ResultFileId], p.name as [Phenotype], p.value as [Value], CONVERT(VARCHAR, pp.resulted_on, 101) AS [ResultedOn], 'Phenotype' AS [Source]
@@ -147,7 +134,7 @@ namespace MHGR.HybridModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetDosing(int id)
+        public override List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT prc.result_file_id AS [ResultFileId],
@@ -197,7 +184,7 @@ namespace MHGR.HybridModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetSNPPhenotypes(int id)
+        public override List<DerivedPhenotype> GetSNPPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId],
@@ -497,7 +484,7 @@ namespace MHGR.HybridModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetStarPhenotypes(int id)
+        public override List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT prc.result_file_id AS [ResultFileId],
@@ -543,7 +530,7 @@ namespace MHGR.HybridModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetVCFPhenotypes(int id)
+        public override List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId],
@@ -843,7 +830,7 @@ namespace MHGR.HybridModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetGVFPhenotypes(int id)
+        public override List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId],

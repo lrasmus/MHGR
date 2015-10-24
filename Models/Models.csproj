@@ -58,6 +58,7 @@
     <Compile Include="GVF\Tag.cs" />
     <Compile Include="Patient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\BaseDerivedPhenotypeRepository.cs" />
     <Compile Include="Repository\IDerivedPhenotypeRepository.cs" />
     <Compile Include="Repository\IPatientRepository.cs" />
     <Compile Include="SnpResult.cs" />

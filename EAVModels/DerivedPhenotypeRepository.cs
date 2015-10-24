@@ -9,16 +9,98 @@ using System.Threading.Tasks;
 
 namespace MHGR.EAVModels
 {
-    public class DerivedPhenotypeRepository : IDerivedPhenotypeRepository
+    public class DerivedPhenotypeRepository : BaseDerivedPhenotypeRepository
     {
         private EAVEntities entities = new EAVEntities();
 
-        public List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype)
+        public override List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype)
         {
-            return null;
+            List<string> details = new List<string>();
+
+            var file = entities.result_files.Where(x => x.id == fileId).FirstOrDefault();
+            if (file == null)
+            {
+                details.Add("The results file that created this result could not be found");
+                return details;
+            }
+
+            switch (source)
+            {
+                case "Phenotype":
+                case "Star":
+                case "SNP":
+                case "VCF":
+                case "GVF":
+                    details.AddRange(GetPhenotypeDetails(file, phenotype));
+                    break;
+                default:
+                    details.Add(string.Format("We're unable to handle '{0}' results", source));
+                    break;
+            }
+
+            details.Add("<div class='result-footer'>");
+            details.Add(string.Format("<div><small>Received in the file: {0}</small></div>", file.name));
+            details.Add(string.Format("<div><small>Received on: {0}</small></div>", file.received_on.ToShortDateString()));
+            details.Add("</div>");
+
+            return details;
         }
 
-        public List<DerivedPhenotype> GetPhenotypes(int id)
+        private List<string> GetPhenotypeDetails(result_files file, string phenotype)
+        {
+            List<string> details = new List<string>();
+            var geneIds = GetGeneFilterForPhenotype(phenotype);
+            if (geneIds == null)
+            {
+                return details;
+            }
+
+            var rootEntities = file.result_entities.Where(x => x.parent_id == null).ToList();
+            foreach (var entity in rootEntities)
+            {
+                details.Add(string.Format("{0}: {1}", entity.attribute.name, FormatResultEntityValue(entity)));
+            }
+
+            return details;
+        }
+
+        private string FormatResultEntityValue(result_entities entity)
+        {
+            if (entity == null)
+            {
+                return string.Empty;
+            }
+
+            if (entity.value_date_time.HasValue)
+            {
+                return entity.value_date_time.Value.ToShortDateString();
+            }
+            else if (entity.value_float.HasValue)
+            {
+                return entity.value_float.ToString();
+            }
+            else if (entity.value_int.HasValue)
+            {
+                return entity.value_int.ToString();
+            }
+            else if (!string.IsNullOrEmpty(entity.value_short_text))
+            {
+                return entity.value_short_text;
+            }
+            else if (!string.IsNullOrEmpty(entity.value_text))
+            {
+                return entity.value_text;
+            }
+
+            return string.Empty;
+        }
+
+        public override int[] GetGeneIdListForGeneNames(string[] geneNames)
+        {
+            return entities.attribute_relationships.Where(x => x.attribute2_id == 30 && x.relationship_id == 2).Select(x => x.attribute1_id).ToArray();
+        }
+
+        public override List<DerivedPhenotype> GetPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"WITH phenotypes ([id], [name], [parent_id], [parent_name])
@@ -49,7 +131,7 @@ namespace MHGR.EAVModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetDosing(int id)
+        public override List<DerivedPhenotype> GetDosing(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId], [phenotype], [value], MAX([resulted_on]) AS [ResultedOn], 'Star' AS [Source]
@@ -120,7 +202,7 @@ namespace MHGR.EAVModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetSNPPhenotypes(int id)
+        public override List<DerivedPhenotype> GetSNPPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId],
@@ -560,7 +642,7 @@ namespace MHGR.EAVModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetStarPhenotypes(int id)
+        public override List<DerivedPhenotype> GetStarPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT pvt.result_file_id AS [ResultFileId], 'Clopidogrel metabolism' AS [phenotype],
@@ -629,7 +711,7 @@ namespace MHGR.EAVModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetVCFPhenotypes(int id)
+        public override List<DerivedPhenotype> GetVCFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId],
@@ -1083,7 +1165,7 @@ namespace MHGR.EAVModels
             return data.ToList();
         }
 
-        public List<DerivedPhenotype> GetGVFPhenotypes(int id)
+        public override List<DerivedPhenotype> GetGVFPhenotypes(int id)
         {
             DbRawSqlQuery<DerivedPhenotype> data = entities.Database.SqlQuery<DerivedPhenotype>(
             @"SELECT result_file_id AS [ResultFileId],

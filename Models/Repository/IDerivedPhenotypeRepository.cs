@@ -16,5 +16,6 @@ namespace MHGR.Models.Repository
         List<DerivedPhenotype> GetDosing(int id);
 
         List<string> GetResultFileDetailsForPhenotype(string source, int fileId, string phenotype);
+        int[] GetGeneIdListForGeneNames(string[] genes);
     }
 }
