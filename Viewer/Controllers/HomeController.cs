@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Viewer.Models;
 
 namespace Viewer.Controllers
 {
@@ -26,7 +27,7 @@ namespace Viewer.Controllers
         
         public ActionResult Index()
         {
-            return View();
+            return View(new HomeData() { Schema = ConfigurationManager.AppSettings["Schema"] });
         }
     }
 }
