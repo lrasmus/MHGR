@@ -4,9 +4,9 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="3e85e9d14f6c4a50b7ae330467971c0d" Name="Diagram1">
-        <EntityTypeShape EntityType="EAVModel.attribute" Width="1.5" PointX="3" PointY="5.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="EAVModel.patient" Width="1.5" PointX="3" PointY="8.375" IsExpanded="true" />
+      <Diagram DiagramId="3e85e9d14f6c4a50b7ae330467971c0d" Name="Diagram1" ZoomLevel="74">
+        <EntityTypeShape EntityType="EAVModel.attribute" Width="1.5" PointX="6.875" PointY="5" IsExpanded="true" />
+        <EntityTypeShape EntityType="EAVModel.patient" Width="1.5" PointX="1.625" PointY="4.375" IsExpanded="true" />
         <EntityTypeShape EntityType="EAVModel.result_entities" Width="1.5" PointX="5.25" PointY="1" IsExpanded="true" />
         <EntityTypeShape EntityType="EAVModel.result_files" Width="1.5" PointX="3" PointY="1.75" IsExpanded="true" />
         <EntityTypeShape EntityType="EAVModel.result_sources" Width="1.5" PointX="0.75" PointY="2.125" IsExpanded="true" />
@@ -15,7 +15,7 @@
         <AssociationConnector Association="EAVModel.FK_result_entities_result_entities" ManuallyRouted="false" />
         <AssociationConnector Association="EAVModel.FK_result_entities_result_files" ManuallyRouted="false" />
         <AssociationConnector Association="EAVModel.FK_result_files_result_sources" ManuallyRouted="false" />
-        <EntityTypeShape EntityType="EAVModel.attribute_relationships" Width="1.5" PointX="5.25" PointY="5.875" />
+        <EntityTypeShape EntityType="EAVModel.attribute_relationships" Width="1.5" PointX="4.625" PointY="5.125" />
         <AssociationConnector Association="EAVModel.FK_attribute_relationships_attributes" />
         <AssociationConnector Association="EAVModel.FK_attribute_relationships_attributes1" />
         <AssociationConnector Association="EAVModel.FK_attribute_relationships_attributes2" />
